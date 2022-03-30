@@ -1,0 +1,49 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": ".NET Core Launch (Mue.Server)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/Mue.Server/bin/Debug/net5.0/Mue.Server.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Mue.Server",
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
+        },
+        {
+            "name": ".NET Core Launch (Mue.Clients.Telnet)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/Mue.Clients.Telnet/bin/Debug/net5.0/Mue.Clients.Telnet.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Mue.Clients.Telnet",
+            "stopAtEntry": false,
+            "console": "internalConsole"
+        },
+        {
+            "name": ".NET Core Launch (Mue.Server.Tools) [init]",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/Mue.Server.Tools/bin/Debug/net5.0/Mue.Server.Tools.dll",
+            "args": ["--task", "init"],
+            "cwd": "${workspaceFolder}/Mue.Server.Tools",
+            "stopAtEntry": false,
+            "console": "internalConsole"
+        },
+        {
+            "name": ".NET Core Attach",
+            "type": "coreclr",
+            "request": "attach"
+        }
+    ]
+}
