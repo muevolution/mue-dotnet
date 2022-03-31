@@ -1,0 +1,56 @@
+name: CI Build
+
+on:
+  push:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build_dotnet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup .NET Core SDK 5.0
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: "5.0.x"
+
+      - name: Install dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test --no-restore --verbosity normal --collect:"XPlat Code Coverage" --results-directory ./coverage
+      - name: Create code coverage report
+        run: |
+          dotnet tool install -g dotnet-reportgenerator-globaltool
+          reportgenerator -reports:"./coverage/**/coverage.cobertura.xml" -targetdir:"./report" -reporttypes:"Html;MarkdownSummary"
+      - name: Upload code coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: report/
+      - name: Add coverage PR comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: github.event_name == 'pull_request'
+        with:
+          recreate: true
+          path: report/Summary.md
+
+  build_web_client:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Mue.Clients.Web
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: "16.x"
+
+      - name: Install packages
+        run: npm ci
+      - name: Build
+        run: npm run build
