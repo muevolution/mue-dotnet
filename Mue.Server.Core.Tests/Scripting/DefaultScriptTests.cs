@@ -38,7 +38,7 @@ public class DefaultScriptTests
     private async Task RunScript(PythonScriptEngine engine, DynamicDictionary si, string scriptName)
     {
         var scriptContent = await File.ReadAllTextAsync("../../../../Mue.Server.Core/Scripting/Defaults/" + scriptName);
-        await engine.SpawnAndRun(scriptName, scriptContent, 1000, si);
+        await engine.SpawnAndRun(scriptName, scriptContent, 5000, si);
     }
 
     [Fact]

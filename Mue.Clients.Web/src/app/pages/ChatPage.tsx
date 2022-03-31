@@ -35,7 +35,7 @@ const ChatPage: React.FC = () => {
         },
     };
 
-    const { client, close, error, isAuthenticated } = useMueServerConnection("http://localhost:5000/mueclient", callbacks);
+    const { client, close, error, isAuthenticated } = useMueServerConnection("/mueclient", callbacks);
 
     if (error) {
         return <p>Error! <pre>{error.message || JSON.stringify(error.message)}</pre></p>

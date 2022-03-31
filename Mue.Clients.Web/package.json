@@ -5,7 +5,7 @@
   "scripts": {
     "build": "parcel build src/index.html",
     "watch": "parcel watch src/index.html",
-    "serve": "parcel serve src/index.html"
+    "serve": "parcel serve src/index.html --hmr-port 1235"
   },
   "author": "Kauko <kauko@biosynth.link>",
   "license": "MIT",

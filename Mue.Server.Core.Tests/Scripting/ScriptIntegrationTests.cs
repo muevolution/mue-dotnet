@@ -37,7 +37,7 @@ public class ScriptIntegrationTests
 def __mue_entry__(mue):
     v = mue.test.HandlesArguments('Tester')
     mue.callback(v)
-", 1000, si);
+", 5000, si);
 
         callback.Verify(v => v(6));
     }
@@ -51,7 +51,7 @@ def __mue_entry__(mue):
 def __mue_entry__(mue):
     v = mue.test.ReturnsVoid()
     mue.callback(v)
-", 1000, si);
+", 5000, si);
 
         callback.Verify(v => v(null));
     }
@@ -65,7 +65,7 @@ def __mue_entry__(mue):
 def __mue_entry__(mue):
     v = mue.test.ReturnsNumber()
     mue.callback(v)
-", 1000, si);
+", 5000, si);
 
         callback.Verify(v => v(4));
     }
@@ -79,7 +79,7 @@ def __mue_entry__(mue):
 def __mue_entry__(mue):
     v = mue.test.ReturnsString()
     mue.callback(v)
-", 1000, si);
+", 5000, si);
 
         callback.Verify(v => v("asdf"));
     }
@@ -93,7 +93,7 @@ def __mue_entry__(mue):
 def __mue_entry__(mue):
     v = mue.test.ReturnsStringList()
     mue.callback(v)
-", 1000, si);
+", 5000, si);
 
         callback.Verify(v => v(new[] { "a", "b", "c" }));
     }
@@ -107,7 +107,7 @@ def __mue_entry__(mue):
 def __mue_entry__(mue):
     v = mue.test.ReturnsTaskStringArray()
     mue.callback(v)
-", 1000, si);
+", 5000, si);
 
         callback.Verify(v => v(new[] { "a", "b", "c" }));
     }
@@ -141,7 +141,7 @@ def __mue_entry__(mue):
         v.SampleValue = 'overwrite'
     except Exception as e:
         mue.callback(e)
-", 1000, si);
+", 5000, si);
 
         callback.Verify(v => v(It.IsAny<object>()));
     }
