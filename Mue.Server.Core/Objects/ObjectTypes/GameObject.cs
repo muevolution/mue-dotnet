@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Mue.Server.Core.Models;
-using Mue.Server.Core.Rx;
 using Mue.Server.Core.System;
 using Mue.Server.Core.Utils;
 
@@ -104,7 +103,7 @@ namespace Mue.Server.Core.Objects
             }
 
             var output = new RenameResult { OldName = currentMeta.Name, NewName = newName };
-            OnObjectEvent(ObjectUpdate.EVENT_RENAME, output);
+            FireObjectEvent(ObjectUpdate.EVENT_RENAME, output);
 
             return updatedMeta && updatedIndex;
         }
@@ -156,7 +155,7 @@ namespace Mue.Server.Core.Objects
             Meta = Meta with { Parent = newParent };
 
             var output = new ReparentResult { OldParent = oldParent, NewParent = newParent };
-            OnObjectEvent(ObjectUpdate.EVENT_REPARENT, output);
+            FireObjectEvent(ObjectUpdate.EVENT_REPARENT, output);
             return output;
         }
 
@@ -212,7 +211,7 @@ namespace Mue.Server.Core.Objects
             Meta = Meta with { Location = newLocation };
 
             var output = new MoveResult { OldLocation = oldLocation, NewLocation = newLocation };
-            OnObjectEvent(ObjectUpdate.EVENT_MOVE, output);
+            FireObjectEvent(ObjectUpdate.EVENT_MOVE, output);
             return output;
         }
 
@@ -242,12 +241,9 @@ namespace Mue.Server.Core.Objects
             return $"'{Name}' [{Id}]";
         }
 
-        // Events
-        public ObjectUpdateObservable ObjectEventStream { get; private set; } = new ObjectUpdateObservable();
-
-        protected void OnObjectEvent(string eventName, IObjectUpdateResult meta = null)
+        protected void FireObjectEvent(string eventName, IObjectUpdateResult meta = null)
         {
-            ObjectEventStream.PublishObjectEvent(this.Id, eventName, meta);
+            this._world.FireObjectEvent(this.Id, eventName, meta);
         }
     }
 

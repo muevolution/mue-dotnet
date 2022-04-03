@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Mue.Server.Core.Utils;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace Mue.Server.Core.Models
@@ -10,17 +9,36 @@ namespace Mue.Server.Core.Models
     public enum PropValueType
     {
         Unset,
+        ObjectId,
         String,
         Number,
         List,
     }
 
-    public record PropValue
+    public class PropValue
     {
-        public PropValue() { }
+        internal const string ObjectIdPrefix = "_oid:";
+        public static readonly PropValue EmptyList = new PropValue(new FlatPropValue[] { });
+
+        public PropValue()
+        {
+            ValueType = PropValueType.Unset;
+        }
+
+        public PropValue(ObjectId val)
+        {
+            ValueType = PropValueType.ObjectId;
+            ObjectIdValue = val;
+        }
 
         public PropValue(string val)
         {
+            if (val == null)
+            {
+                ValueType = PropValueType.Unset;
+                return;
+            }
+
             ValueType = PropValueType.String;
             StringValue = val;
         }
@@ -37,41 +55,70 @@ namespace Mue.Server.Core.Models
             ListValue = val;
         }
 
-        public PropValueType ValueType { get; init; }
-        public string StringValue { get; init; }
-        public int? NumberValue { get; init; }
-        public IEnumerable<FlatPropValue> ListValue { get; init; }
+        public PropValueType ValueType { get; private init; }
+        public ObjectId ObjectIdValue { get; private init; }
+        public string StringValue { get; private init; }
+        public int? NumberValue { get; private init; }
+        public IEnumerable<FlatPropValue> ListValue { get; private init; }
 
         public bool IsNull { get { return ValueType == PropValueType.Unset; } }
+
+        public override bool Equals(object obj)
+        {
+            if (this == obj)
+            {
+                return true;
+            }
+            else if (!this.GetType().Equals(obj.GetType()))
+            {
+                return false;
+            }
+
+            var cObj = ((PropValue)obj);
+            if (this.ValueType != cObj.ValueType)
+            {
+                return false;
+            }
+
+            if (this.ValueType == PropValueType.Unset)
+            {
+                return true;
+            }
+            else if (this.ValueType == PropValueType.List)
+            {
+                return this.ListValue.SequenceEqual(cObj.ListValue);
+            }
+            else
+            {
+                return this.ToDynamic() == cObj.ToDynamic();
+            }
+        }
+
+        public override int GetHashCode()
+        {
+            return this.ToDynamic().GetHashCode();
+        }
 
         public override string ToString()
         {
             return ValueType switch
             {
+                PropValueType.ObjectId => ObjectIdValue.Id,
                 PropValueType.String => StringValue,
                 PropValueType.Number => NumberValue.Value.ToString(),
-                PropValueType.List => "[" + String.Join(",", ListValue.Select(s => s.ValueType switch
-                {
-                    FlatPropValueType.String => s.StringValue as object,
-                    FlatPropValueType.Number => s.NumberValue as object,
-                    _ => null,
-                })) + "]",
+                PropValueType.List => "[" + String.Join(",", ListValue.Select(s => s.ToString())) + "]",
                 _ => "unknown",
             };
         }
 
-        public dynamic ToDynamic()
+        public dynamic ToDynamic(bool forJson = false)
         {
             return ValueType switch
             {
+                PropValueType.ObjectId => forJson ? $"{ObjectIdPrefix}{ObjectIdValue}" : ObjectIdValue,
                 PropValueType.String => StringValue,
                 PropValueType.Number => NumberValue.Value,
-                PropValueType.List => ListValue.Select(s => s.ValueType switch
-                {
-                    FlatPropValueType.String => s.StringValue as object,
-                    FlatPropValueType.Number => s.NumberValue as object,
-                    _ => null,
-                }).ToArray(),
+                PropValueType.List => ListValue.Select(s => s.ToDynamic(forJson)).ToArray(),
                 _ => null,
             };
         }
@@ -83,7 +130,7 @@ namespace Mue.Server.Core.Models
                 return null;
             }
 
-            return Json.Serialize(ToDynamic());
+            return Json.Serialize(ToDynamic(true));
         }
 
         public static PropValue FromJsonString(string json)
@@ -101,33 +148,55 @@ namespace Mue.Server.Core.Models
         {
             return jobj.Type switch
             {
-                JTokenType.None or JTokenType.Null => new PropValue { ValueType = PropValueType.Unset },
-                JTokenType.String => new PropValue { ValueType = PropValueType.String, StringValue = (string)jobj },
-                JTokenType.Integer => new PropValue { ValueType = PropValueType.Number, NumberValue = (int)jobj },
-                JTokenType.Array => new PropValue
-                {
-                    ValueType = PropValueType.List,
-                    ListValue = ((JArray)jobj).Select(s => s.Type switch
-                    {
-                        JTokenType.String => new FlatPropValue((string)s),
-                        JTokenType.Integer => new FlatPropValue((int)s),
-                        _ => throw new Exception($"Failed to decode list PropValue from JSON (unsupported type {s.Type}"),
-                    }).ToArray()
-                },
+                JTokenType.None or JTokenType.Null => new PropValue(),
+                JTokenType.String => PropValue.FromJsonStringDeterminer(jobj),
+                JTokenType.Integer => new PropValue((int)jobj),
+                JTokenType.Array => new PropValue(((JArray)jobj).Select(s => FlatPropValue.FromJson(s)).Where(w => w != null).ToArray()),
                 _ => throw new Exception($"Failed to decode PropValue from JSON (unsupported root type {jobj.Type})"),
             };
+        }
+
+        public static PropValue FromJsonStringDeterminer(JToken jobj)
+        {
+            var str = (string)jobj;
+
+            if (str.StartsWith(ObjectIdPrefix))
+            {
+                var objStr = str.Substring(ObjectIdPrefix.Length);
+                try
+                {
+                    var id = new ObjectId(objStr);
+                    if (id.IsAssigned && id.ObjectType != Objects.GameObjectType.Invalid)
+                    {
+                        return new PropValue(id);
+                    }
+                }
+                catch (IllegalObjectIdConstructorException)
+                {
+                    // Not an ObjectId
+                }
+            }
+
+            return new PropValue(str);
         }
     }
 
     public enum FlatPropValueType
     {
+        ObjectId,
         String,
         Number,
     }
 
-    public record FlatPropValue
+    public class FlatPropValue
     {
         public FlatPropValue() { }
+
+        public FlatPropValue(ObjectId val)
+        {
+            ValueType = FlatPropValueType.ObjectId;
+            ObjectIdValue = val;
+        }
 
         public FlatPropValue(string val)
         {
@@ -141,8 +210,91 @@ namespace Mue.Server.Core.Models
             NumberValue = val;
         }
 
-        public FlatPropValueType ValueType { get; init; }
-        public string StringValue { get; init; }
-        public int? NumberValue { get; init; }
+        public FlatPropValueType ValueType { get; private init; }
+        public ObjectId ObjectIdValue { get; private init; }
+        public string StringValue { get; private init; }
+        public int? NumberValue { get; private init; }
+
+        public override bool Equals(object obj)
+        {
+            if (this == obj)
+            {
+                return true;
+            }
+            else if (!this.GetType().Equals(obj.GetType()))
+            {
+                return false;
+            }
+
+            var cObj = ((FlatPropValue)obj);
+            if (this.ValueType != cObj.ValueType)
+            {
+                return false;
+            }
+
+            return this.ToDynamic() == cObj.ToDynamic();
+        }
+
+        public override int GetHashCode()
+        {
+            return this.ToDynamic().GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return ValueType switch
+            {
+                FlatPropValueType.ObjectId => ObjectIdValue.Id,
+                FlatPropValueType.String => StringValue,
+                FlatPropValueType.Number => NumberValue.Value.ToString(),
+                _ => "unknown",
+            };
+        }
+
+        internal dynamic ToDynamic(bool forJson = false)
+        {
+            return ValueType switch
+            {
+                FlatPropValueType.ObjectId => forJson ? $"{PropValue.ObjectIdPrefix}{ObjectIdValue}" : ObjectIdValue,
+                FlatPropValueType.String => StringValue,
+                FlatPropValueType.Number => NumberValue.Value,
+                _ => null,
+            };
+        }
+
+        internal static FlatPropValue FromJson(JToken jobj)
+        {
+            return jobj.Type switch
+            {
+                JTokenType.None or JTokenType.Null => null,
+                JTokenType.String => FromJsonStringDeterminer(jobj),
+                JTokenType.Integer => new FlatPropValue((int)jobj),
+                _ => throw new Exception($"Failed to decode FlatPropValue from JSON (unsupported root type {jobj.Type})"),
+            };
+        }
+
+        private static FlatPropValue FromJsonStringDeterminer(JToken jobj)
+        {
+            var str = (string)jobj;
+
+            if (str.StartsWith(PropValue.ObjectIdPrefix))
+            {
+                try
+                {
+                    var objStr = str.Substring(PropValue.ObjectIdPrefix.Length);
+                    var id = new ObjectId(objStr);
+                    if (id.IsAssigned && id.ObjectType != Objects.GameObjectType.Invalid)
+                    {
+                        return new FlatPropValue(id);
+                    }
+                }
+                catch (IllegalObjectIdConstructorException)
+                {
+                    // Not an ObjectId
+                }
+            }
+
+            return new FlatPropValue(str);
+        }
     }
 }

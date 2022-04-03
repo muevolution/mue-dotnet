@@ -8,6 +8,8 @@ namespace Mue.Common.Models
         public string Command { get; init; }
         public string Args { get; init; }
         public IDictionary<string, string> Params { get; init; }
+
+        public bool IsBare => String.IsNullOrEmpty(Args) && (Params == null || Params.Count < 1);
     }
 
     public struct MessageFormats

@@ -53,7 +53,7 @@ namespace Mue.Server.Core.Scripting.Implementation
                 HasHeader = hasHeader,
             });
 
-            return TellAsync("Your client does not support rendering tables.", target, fullMeta);
+            return TellAsync(CommunicationsMessage.MSG_NO_TABLES, target, fullMeta);
         }
 
         private async Task TellAsync(string message, string target = null, IDictionary<string, string> meta = null, MessageFormats? extendedFormat = null, IDictionary<string, string> extendedContent = null)
@@ -63,6 +63,11 @@ namespace Mue.Server.Core.Scripting.Implementation
             if (targetObj == null)
             {
                 throw new MueEngineBindingException($"Target {target ?? "null!"} not found");
+            }
+
+            if (meta != null)
+            {
+                CommunicationsMessage.PurifyMeta(meta);
             }
 
             await _world.PublishMessage(new InteriorMessage

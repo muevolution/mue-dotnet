@@ -33,6 +33,7 @@ namespace Mue.Server.Core.Objects
         };
 
         private static readonly IReadOnlyDictionary<string, GameObjectType> GameObjectTypeStrings = GameObjectTypes.ToDictionary(k => k.Value, k => k.Key);
+        public static readonly IEnumerable<string> GameObjectValidTypePrefixes = GameObjectTypes.Values;
 
         public static string ToShortString(this GameObjectType type)
         {

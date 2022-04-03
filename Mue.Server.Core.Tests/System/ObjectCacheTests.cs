@@ -218,7 +218,7 @@ public class ObjectCacheTests
         var cache = new ObjectCache(_sys.World.Object);
         await cache.Invalidate(objId);
 
-        _sys.World.Verify(s => s.SendObjectUpdate(objId, "invalidate"));
+        _sys.World.Verify(s => s.FireObjectEvent(objId, "invalidate", EmptyObjectUpdateResult.Empty, false));
     }
 
     // InvalidateLocal
@@ -309,7 +309,7 @@ public class ObjectCacheTests
         var cache = new ObjectCache(_sys.World.Object);
         await cache.OnDestroy(obj.Object);
 
-        _sys.World.Verify(v => v.SendObjectUpdate(objId, "destroy"));
+        _sys.World.Verify(v => v.FireObjectEvent(objId, "destroy", EmptyObjectUpdateResult.Empty, false));
     }
 
     [Fact]

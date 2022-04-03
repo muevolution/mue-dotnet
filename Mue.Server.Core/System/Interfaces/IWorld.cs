@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Mue.Common.Models;
 using Mue.Server.Core.Models;
 using Mue.Server.Core.Objects;
+using Mue.Server.Core.Rx;
 
 namespace Mue.Server.Core.System
 {
@@ -31,6 +32,8 @@ namespace Mue.Server.Core.System
         Task<IEnumerable<ObjectId>> GetActiveRoomIds();
         Task<IEnumerable<ObjectId>> GetConnectedPlayerIds();
         Task InvalidateScriptCache();
-        Task SendObjectUpdate(ObjectId id, string updateType);
+        ObjectUpdateObservable WorldEventStream { get; }
+        Task FireObjectEvent<T>(ObjectId id, string eventName, T meta, bool localOnly = false) where T : IObjectUpdateResult;
+        Task FirePlayerEvent<T>(ObjectId id, string eventName, T meta, bool localOnly = false) where T : IPlayerUpdateResult;
     }
 }

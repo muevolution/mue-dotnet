@@ -291,38 +291,21 @@ public class GameObjectTests
         var objId = new ObjectId("p:test");
         var mock = CreateMock(id: objId);
 
-        var expectedObjectUpdate = new ObjectUpdate
-        {
-            Id = mock.Id,
-            EventName = "rename",
-            Meta = new RenameResult
-            {
-                OldName = "Test name",
-                NewName = "Newname"
-            }
-        };
-
-        var subTrack = new Mock<Action>();
-        Action<ObjectUpdate> subValidator = (ObjectUpdate update) =>
-        {
-            Assert.Equal(expectedObjectUpdate, update);
-            subTrack.Object();
-        };
-
         _sys.StorageManager.Setup(s => s.GetMeta<ObjectMetadata>(objId)).ReturnsAsync(mock.Meta);
         _sys.StorageManager.Setup(s => s.UpdatePlayerNameIndex(objId, "Test name", "Newname")).ReturnsAsync(true);
 
-        using (var subscription = mock.ObjectEventStream.Subscribe(subValidator))
-        {
-            var actual = await mock.Rename("Newname");
-            Assert.True(actual);
-        }
+        var actual = await mock.Rename("Newname");
+        Assert.True(actual);
 
         var newMeta = mock.Meta with { Name = "Newname" };
         _sys.StorageManager.Verify(v => v.UpdateMeta(objId, newMeta));
         _sys.StorageManager.Verify(v => v.UpdatePlayerNameIndex(objId, "Test name", "Newname"));
 
-        subTrack.Verify((v) => v());
+        _sys.World.Verify(v => v.FireObjectEvent<IObjectUpdateResult>(mock.Id, "rename", new RenameResult
+        {
+            OldName = "Test name",
+            NewName = "Newname"
+        }, false));
     }
 
     [Theory]
@@ -365,20 +348,14 @@ public class GameObjectTests
             Meta = expectedMoveResult
         };
 
-        var subTrack = new Mock<Action>();
-        Action<ObjectUpdate> subValidator = (ObjectUpdate update) =>
-        {
-            Assert.Equal(expectedObjectUpdate, update);
-            subTrack.Object();
-        };
+        var actual = mock.MoveFinish(newLocationId, oldLocationId);
+        Assert.Equal(expectedMoveResult, actual);
 
-        using (var subscription = mock.ObjectEventStream.Subscribe(subValidator))
+        _sys.World.Verify(v => v.FireObjectEvent<IObjectUpdateResult>(mock.Id, "move", new MoveResult
         {
-            var actual = mock.MoveFinish(newLocationId, oldLocationId);
-            Assert.Equal(expectedMoveResult, actual);
-        }
-
-        subTrack.Verify((v) => v());
+            OldLocation = oldLocationId,
+            NewLocation = newLocationId
+        }, false));
     }
 
     // Destroy

@@ -9,6 +9,7 @@ using Mue.Server.Core.Objects;
 using Mue.Server.Core.Utils;
 using Mue.Backend.Storage;
 using Mue.Backend.PubSub;
+using Mue.Server.Core.Rx;
 
 namespace Mue.Server.Core.System
 {
@@ -232,11 +233,6 @@ namespace Mue.Server.Core.System
             await SendInterServer(InterServerMessage.CreateInvalidateScript(WorldInstanceId));
         }
 
-        public async Task SendObjectUpdate(ObjectId id, string updateType)
-        {
-            await SendInterServer(InterServerMessage.CreateObjectUpdate(WorldInstanceId, id.ToString(), updateType));
-        }
-
         private async Task ConfigureInterServer()
         {
             StateEnforce();
@@ -277,12 +273,53 @@ namespace Mue.Server.Core.System
                 _logger.LogInformation("ISC> [{thisInstance}] Object {objectId} {objectMessage} update requested by {originInstance}", WorldInstanceId, msg.Meta["id"], msg.Meta["message"], msg.InstanceId);
                 if (msg.Meta["message"] == "invalidate")
                 {
+                    // Object was changed on another server
                     ObjectCache.InvalidateLocal(new ObjectId(msg.Meta["id"]));
                 }
                 else if (msg.Meta["message"] == "destroyed")
                 {
+                    // Object was destroyed on another server
                     ObjectCache.PostNetworkDestroy(new ObjectId(msg.Meta["id"]));
                 }
+            }
+            else if (msg.EventName == InterServerMessage.EVENT_UPDATE_PLAYER)
+            {
+                if (msg.Meta["message"] == "connect")
+                {
+                    // Player connected to another server
+                    WorldEventStream.PublishPlayerEvent(new ObjectId(msg.Meta["id"]), msg.Meta["message"], new PlayerConnectionResult
+                    {
+                        RemainingConnections = msg.Meta.ContainsKey("remainingConnections") ? int.Parse(msg.Meta["remainingConnections"]) : -1,
+                    });
+                }
+                else if (msg.Meta["message"] == "disconnect")
+                {
+                    // Player disconnected from another server
+                    WorldEventStream.PublishPlayerEvent(new ObjectId(msg.Meta["id"]), msg.Meta["message"], new PlayerConnectionResult
+                    {
+                        RemainingConnections = msg.Meta.ContainsKey("remainingConnections") ? int.Parse(msg.Meta["remainingConnections"]) : -1,
+                    });
+                }
+            }
+        }
+
+        public ObjectUpdateObservable WorldEventStream { get; private set; } = new ObjectUpdateObservable();
+
+        public async Task FireObjectEvent<T>(ObjectId id, string eventName, T meta, bool localOnly = false) where T : IObjectUpdateResult
+        {
+            WorldEventStream.PublishObjectEvent(id, eventName, meta);
+            if (!localOnly)
+            {
+                await SendInterServer(InterServerMessage.CreateObjectUpdate(this.WorldInstanceId, id.Id, eventName));
+            }
+        }
+
+        public async Task FirePlayerEvent<T>(ObjectId id, string eventName, T meta, bool localOnly = false) where T : IPlayerUpdateResult
+        {
+            WorldEventStream.PublishPlayerEvent(id, eventName, meta);
+            if (!localOnly)
+            {
+                await SendInterServer(InterServerMessage.CreatePlayerUpdate(this.WorldInstanceId, id.Id, eventName));
             }
         }
 

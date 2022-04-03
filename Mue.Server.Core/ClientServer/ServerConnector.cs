@@ -95,11 +95,18 @@ namespace Mue.Server.Core.ClientServer
             _subTokens.Add(_psPlayerLoc);
             _subTokens.Add(await _pubSub.Subscribe($"c:{_player.Id}", OnPubSubMessage));
 
-            _playerEventSubscription = _player.ObjectEventStream.SelectMany(OnPlayerEvent).Subscribe();
+            // Subscribe the player's object to their own player events
+            _playerEventSubscription = _world.WorldEventStream.Where(w => w.Id == _player.Id).SelectMany(OnPlayerEvent).Subscribe();
 
+            // Tell the room the player was in
             var playerLocationObj = await _world.GetObjectById<GameRoom>(_player.Location);
             await _world.PublishMessage($"{_player.Name} has connected.", playerLocationObj);
 
+            // Tell everything else
+            // Theoretically this could be used instead of telling the room directly
+            await _world.FirePlayerEvent(_player.Id, PlayerUpdate.EVENT_CONNECT, new PlayerConnectionResult { RemainingConnections = 0 });
+
+            // Tell the connection
             return new OperationResponse { Message = $"Welcome {_player.Name} [{_player.Id.Id}]" };
         }
 

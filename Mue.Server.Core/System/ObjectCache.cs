@@ -104,7 +104,7 @@ namespace Mue.Server.Core.System
 
         public async Task<bool> Invalidate(ObjectId id)
         {
-            await _world.SendObjectUpdate(id, ObjectUpdate.EVENT_INVALIDATE);
+            await _world.FireObjectEvent(id, ObjectUpdate.EVENT_INVALIDATE, EmptyObjectUpdateResult.Empty);
             return await InvalidateLocal(id);
         }
 
@@ -140,8 +140,7 @@ namespace Mue.Server.Core.System
                 throw new Exception("Game object was not destroyed");
             }
 
-            await _world.SendObjectUpdate(obj.Id, ObjectUpdate.EVENT_DESTROY);
-
+            await _world.FireObjectEvent(obj.Id, ObjectUpdate.EVENT_DESTROY, EmptyObjectUpdateResult.Empty);
         }
 
         /// <summary>Remove the destroyed object from this server.</summary>

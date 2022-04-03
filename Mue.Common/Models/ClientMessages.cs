@@ -32,11 +32,17 @@ namespace Mue.Common.Models
     public record CommunicationsMessage
     {
         public const string META_ERRTYPE = "error_type";
+        public const string META_ORIGIN = "origin";
         public const string META_RENDERER = "message_renderer";
         public const string META_RENDERER_DEFAULT = "plaintext";
+        public const string META_RENDERER_LIST = "list";
         public const string META_RENDERER_TABLE = "table";
         public const string META_RENDERER_CLIENTONLY = "client_only";
         public const string META_TABLE_CONTENT = "table_content";
+        public const string META_LIST_CONTENT = "list_content";
+
+        public const string MSG_NO_LISTS = "Your client does not support rendering lists.";
+        public const string MSG_NO_TABLES = "Your client does not support rendering tables.";
 
         public string Source { get; init; }
         public string Target { get; init; }
@@ -44,6 +50,19 @@ namespace Mue.Common.Models
         public IReadOnlyDictionary<string, string> ExtendedContent { get; init; }
         public string ExtendedFormat { get; init; }
         public IDictionary<string, string> Meta { get; init; }
+
+        public static void PurifyMeta(IDictionary<string, string> meta)
+        {
+            meta.Remove(META_ERRTYPE);
+            meta.Remove(META_ORIGIN);
+            meta.Remove(META_RENDERER);
+        }
+    }
+
+    public record CommunicationsMessage_List
+    {
+        public string Message { get; init; }
+        public IEnumerable<string> List { get; init; }
     }
 
     public record CommunicationsMessage_Table

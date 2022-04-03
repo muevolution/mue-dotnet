@@ -31,6 +31,8 @@ public class WorldTests
     public WorldTests()
     {
         _sys = new SystemMock();
+        
+        TimeUtil.InTestMode = true; // Freeze clock
     }
 
     // Init
@@ -42,7 +44,7 @@ public class WorldTests
 
         await world.Init();
 
-        var publishedJson = $"{{\"instance_id\":\"{world.WorldInstanceId}\",\"event_name\":\"joined\"}}";
+        var publishedJson = $"{{\"instance_id\":\"{world.WorldInstanceId}\",\"event_time\":\"{TimeUtil.FrozenTimeString}\",\"event_name\":\"joined\"}}";
         _sys.BackendPubSub.Verify(v => v.Publish("c:isc", publishedJson));
         _sys.BackendPubSub.Verify(v => v.Subscribe("c:isc", It.IsAny<Action<string, string>>()));
 
@@ -268,22 +270,7 @@ public class WorldTests
 
         _sys.ObjectCache.Verify(v => v.InvalidateAll<GameScript>());
 
-        var expectedJson = $"{{\"instance_id\":\"{world.WorldInstanceId}\",\"event_name\":\"invalidate_script\"}}";
-        _sys.BackendPubSub.Verify(v => v.Publish("c:isc", expectedJson));
-    }
-
-    // SendObjectUpdate
-
-    [Fact]
-    public async Task SendObjectUpdate()
-    {
-        var objId = new ObjectId("i:test");
-
-        var world = await CreateMock();
-
-        await world.SendObjectUpdate(objId, "move");
-
-        var expectedJson = $"{{\"instance_id\":\"{world.WorldInstanceId}\",\"event_name\":\"update_object\",\"meta\":{{\"id\":\"i:test\",\"message\":\"move\"}}}}";
+        var expectedJson = $"{{\"instance_id\":\"{world.WorldInstanceId}\",\"event_time\":\"{TimeUtil.FrozenTimeString}\",\"event_name\":\"invalidate_script\"}}";
         _sys.BackendPubSub.Verify(v => v.Publish("c:isc", expectedJson));
     }
 

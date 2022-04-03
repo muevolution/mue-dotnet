@@ -281,9 +281,10 @@ public class StorageManagerTests
         var manager = new StorageManager(_sys.BackendStorage.Storage.Object);
 
         var actual = await manager.GetProps(objId);
-        Assert.Equal(2, actual.Count);
-        Assert.Contains(actual, p => p.Key == "prop1" && p.Value == new PropValue("valueA"));
-        Assert.Contains(actual, p => p.Key == "prop2" && p.Value == new PropValue(123));
+        Assert.Collection(actual, new Action<KeyValuePair<string, PropValue>>[] {
+           p => { Assert.Equal("prop1", p.Key); Assert.Equal(new PropValue("valueA"), p.Value); },
+           p => { Assert.Equal("prop2", p.Key); Assert.Equal(new PropValue(123), p.Value); },
+        });
     }
 
     // SetProp

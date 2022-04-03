@@ -188,7 +188,7 @@ namespace Mue.Server.Core.Objects
 
         public void Quit(string reason = null)
         {
-            ObjectEventStream.PublishPlayerEvent(this.Id, "quit", new QuitResult { Reason = reason });
+            _world.FirePlayerEvent(this.Id, PlayerUpdate.EVENT_QUIT, new QuitResult { Reason = reason });
         }
 
         public bool CheckPassword(string password)

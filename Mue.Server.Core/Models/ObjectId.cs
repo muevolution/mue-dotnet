@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 using Mue.Server.Core.Objects;
 using Mue.Server.Core.Utils;
 using Newtonsoft.Json;
@@ -9,6 +10,7 @@ namespace Mue.Server.Core.Models
     public record ObjectId
     {
         public static readonly ObjectId Empty = new ObjectId();
+        private static readonly Regex ObjectIdRegex = new Regex($"^[{String.Join("", GameObjectConsts.GameObjectValidTypePrefixes)}]:[a-zA-Z0-9]+");
 
         public ObjectId()
         {
@@ -73,6 +75,11 @@ namespace Mue.Server.Core.Models
         public override string ToString()
         {
             return Id;
+        }
+
+        public static bool LooksLikeAnId(string idStr)
+        {
+            return ObjectIdRegex.IsMatch(idStr);
         }
     }
 

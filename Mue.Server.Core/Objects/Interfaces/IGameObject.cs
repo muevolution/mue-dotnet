@@ -35,7 +35,5 @@ namespace Mue.Server.Core.Objects
         MoveResult MoveFinish(ObjectId newLocation, ObjectId oldLocation = null);
         Task<bool> Destroy();
         Task<bool> Invalidate();
-
-        ObjectUpdateObservable ObjectEventStream { get; }
     }
 }
