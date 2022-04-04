@@ -17,10 +17,17 @@ public static class MueStartupExtensions
         // This could theoretically live anywhere that can host Mue.Server.Core, not just in Mue.Server, but it's here for now due to IHostedService and IConfiguration usage
         return builder.ConfigureServices((services) =>
         {
-            services.AddRedisBackendServices((s) => s.GetRequiredService<IConfiguration>()["RedisConnectionString"]);
-            services.AddMueCoreServices();
-            services.AddHostedService<HostedWorld>();
+            services.ConfigureMueServices();
         });
+    }
+
+    public static IServiceCollection ConfigureMueServices(this IServiceCollection services)
+    {
+        services.AddRedisBackendServices((s) => s.GetRequiredService<IConfiguration>()["RedisConnectionString"]);
+        services.AddMueCoreServices();
+        services.AddHostedService<HostedWorld>();
+
+        return services;
     }
 
     public static IServiceCollection AddMueCoreServices(this IServiceCollection services)
