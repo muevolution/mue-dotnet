@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Mue.Common.Models;
 using Mue.Server.Core.Models;
 using Mue.Server.Core.Objects;
+using Mue.Server.Core.Utils;
 
 namespace Mue.Server.Core.System.CommandBuiltins
 {
@@ -30,7 +31,7 @@ namespace Mue.Server.Core.System.CommandBuiltins
             Func<IEnumerable<ObjectId>, Task<string>> ContentsToStr = async (contents) =>
             {
                 var contentsObj = await Task.WhenAll(contents.Select(s => _world.GetObjectById(s)));
-                var contentsName = contentsObj.Select(s => s.Name);
+                var contentsName = contentsObj.WhereNotNull().Select(s => s.Name);
                 return String.Join(", ", contentsName);
             };
 
@@ -45,16 +46,23 @@ namespace Mue.Server.Core.System.CommandBuiltins
             }
 
             var location = await _world.GetObjectById(player.Location);
-            output.AppendLine($"Player location: {location.Name} [{location.Id}]");
-
-            var locationContents = await (location as IContainer)?.GetContents();
-            if (locationContents?.Count() > 0)
+            if (location != null)
             {
-                output.AppendLine($"Room contents: [{await ContentsToStr(locationContents)}]");
+                output.AppendLine($"Player location: {location.Name} [{location.Id}]");
+
+                var locationContents = await ((IContainer)location).GetContents();
+                if (locationContents?.Count() > 0)
+                {
+                    output.AppendLine($"Room contents: [{await ContentsToStr(locationContents)}]");
+                }
+                else
+                {
+                    output.AppendLine("Room contents: none");
+                }
             }
             else
             {
-                output.AppendLine("Room contents: none");
+                output.AppendLine("Player location: The Void");
             }
 
             await _world.PublishMessage(output.ToString(), player);

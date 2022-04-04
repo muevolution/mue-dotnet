@@ -9,12 +9,12 @@ namespace Mue.Server.Core.Objects
 {
     public record PlayerMetadata : ObjectMetadata
     {
-        public string PasswordHash { get; init; }
+        public string? PasswordHash { get; init; }
     }
 
     public class GamePlayer : Container<PlayerMetadata>
     {
-        public static Task<GamePlayer> Create(IWorld world, string name, string password, ObjectId creator, ObjectId parent, ObjectId location = null)
+        public static Task<GamePlayer> Create(IWorld world, string name, string password, ObjectId creator, ObjectId parent, ObjectId? location = null)
         {
             // Hash the password
             var passwordHash = Security.HashPassword(password);
@@ -52,17 +52,17 @@ namespace Mue.Server.Core.Objects
             return world.ObjectCache.StandardImitate<GamePlayer, PlayerMetadata>(id, (meta) => Task.FromResult(new GamePlayer(world, meta, id)));
         }
 
-        protected GamePlayer(IWorld world, PlayerMetadata meta, ObjectId id = null) : base(world, GameObjectType.Player, meta, id)
+        protected GamePlayer(IWorld world, PlayerMetadata meta, ObjectId? id = null) : base(world, GameObjectType.Player, meta, id)
         {
             _useDeepSearch = true;
         }
 
-        public override Task<ReparentResult> Reparent(ObjectId newParent)
+        public override Task<ReparentResult?> Reparent(ObjectId newParent)
         {
             return base.Reparent(newParent, new[] { GameObjectType.Room });
         }
 
-        public override async Task<MoveResult> Move(ObjectId newLocation)
+        public override async Task<MoveResult?> Move(ObjectId newLocation)
         {
             var result = await base.Move(newLocation);
             if (result == null)
@@ -79,18 +79,24 @@ namespace Mue.Server.Core.Objects
             }
 
             var newLocationObj = await _world.GetObjectById(result.NewLocation);
+            if (newLocationObj == null)
+            {
+                await SendMessage($"Failed to find your destination [{newLocation}].");
+                return null;
+            }
+
             await SendMessage($"You arrive in {newLocationObj.Name}");
             await _world.PublishMessage($"{Name} has arrived.", newLocationObj);
 
             return result;
         }
 
-        public override Task<ObjectId> Find(string term, GameObjectType? type = null)
+        public override Task<ObjectId?> Find(string term, GameObjectType? type = null)
         {
             return Find(term, type, false);
         }
 
-        public async Task<ObjectId> Find(string term, GameObjectType? type = null, bool searchLoc = false)
+        public async Task<ObjectId?> Find(string term, GameObjectType? type = null, bool searchLoc = false)
         {
             // Search on player first
             var firstSearch = await FindIn(term, type);
@@ -100,7 +106,7 @@ namespace Mue.Server.Core.Objects
             }
 
             // Now search the player tree
-            IContainer parent = null;
+            IContainer? parent = null;
             if (type.HasValue && type == GameObjectType.Action)
             {
                 parent = await _world.GetObjectById(Parent) as IContainer;
@@ -118,7 +124,7 @@ namespace Mue.Server.Core.Objects
             if ((type.HasValue && type == GameObjectType.Action) || searchLoc)
             {
                 var location = await _world.GetObjectById(Location) as IContainer;
-                if (location == parent)
+                if (location == null || location == parent)
                 {
                     // Already searched this tree
                     return null;
@@ -131,7 +137,7 @@ namespace Mue.Server.Core.Objects
         }
 
         /// <summary>Arbitrary target search, usually for a command.</summary>
-        public async Task<ObjectId> ResolveTarget(string target, bool absolute = false)
+        public async Task<ObjectId?> ResolveTarget(string target, bool absolute = false)
         {
             if (target == "me")
             {
@@ -186,9 +192,9 @@ namespace Mue.Server.Core.Objects
             return _world.PublishMessage(message, this);
         }
 
-        public void Quit(string reason = null)
+        public void Quit(string? reason = null)
         {
-            _world.FirePlayerEvent(this.Id, PlayerUpdate.EVENT_QUIT, new QuitResult { Reason = reason });
+            _world.FirePlayerEvent(this.Id, PlayerUpdate.EVENT_QUIT, new QuitResult(reason));
         }
 
         public bool CheckPassword(string password)

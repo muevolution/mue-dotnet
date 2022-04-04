@@ -21,7 +21,7 @@ namespace Mue.Server.Core.Objects
         public ObjectMetadata MetaBasic => Meta;
         public IReadOnlyDictionary<string, string> MetaDictionary => Meta.ToDictionary();
 
-        protected GameObject(IWorld world, GameObjectType objType, MD meta, ObjectId id = null)
+        protected GameObject(IWorld world, GameObjectType objType, MD meta, ObjectId? id = null)
         {
             _world = world;
             ObjectType = objType;
@@ -49,7 +49,7 @@ namespace Mue.Server.Core.Objects
         public string Name => Meta.Name;
         public ObjectId Parent => Meta.Parent;
         public bool IsParentRoot => Meta.Parent == Id;
-        public ObjectId Location => Meta.Location;
+        public ObjectId? Location => Meta.Location;
         public bool IsLocationRoot => Meta.Location == Id;
 
         public Task<PropValue> GetProp(string path)
@@ -85,7 +85,7 @@ namespace Mue.Server.Core.Objects
 
         public async Task<bool> Rename(string newName)
         {
-            newName = newName?.Trim();
+            newName = newName?.Trim() ?? String.Empty;
 
             if (String.IsNullOrWhiteSpace(newName) || Name == newName)
             {
@@ -93,6 +93,11 @@ namespace Mue.Server.Core.Objects
             }
 
             var currentMeta = await _world.StorageManager.GetMeta<MD>(this.Id);
+            if (currentMeta == null)
+            {
+                throw new InvalidGameObjectStateException(this.Id);
+            }
+
             var newMeta = currentMeta with { Name = newName };
             var updatedMeta = await _world.StorageManager.UpdateMeta(this.Id, newMeta);
             var updatedIndex = true;
@@ -102,18 +107,18 @@ namespace Mue.Server.Core.Objects
                 updatedIndex = await _world.StorageManager.UpdatePlayerNameIndex(this.Id, currentMeta.Name, newName);
             }
 
-            var output = new RenameResult { OldName = currentMeta.Name, NewName = newName };
+            var output = new RenameResult(currentMeta.Name, newName);
             FireObjectEvent(ObjectUpdate.EVENT_RENAME, output);
 
             return updatedMeta && updatedIndex;
         }
 
-        public virtual Task<ReparentResult> Reparent(ObjectId newParent)
+        public virtual Task<ReparentResult?> Reparent(ObjectId newParent)
         {
             return Reparent(newParent, GameObjectConsts.AllContainerTypes);
         }
 
-        protected async Task<ReparentResult> Reparent(ObjectId newParent, IEnumerable<GameObjectType> restrictedTypes)
+        protected async Task<ReparentResult?> Reparent(ObjectId newParent, IEnumerable<GameObjectType> restrictedTypes)
         {
             if (newParent == null)
             {
@@ -154,17 +159,17 @@ namespace Mue.Server.Core.Objects
 
             Meta = Meta with { Parent = newParent };
 
-            var output = new ReparentResult { OldParent = oldParent, NewParent = newParent };
+            var output = new ReparentResult(oldParent, newParent);
             FireObjectEvent(ObjectUpdate.EVENT_REPARENT, output);
             return output;
         }
 
-        public virtual Task<MoveResult> Move(ObjectId newLocation)
+        public virtual Task<MoveResult?> Move(ObjectId newLocation)
         {
             return Move(newLocation, GameObjectConsts.AllContainerTypes);
         }
 
-        protected async Task<MoveResult> Move(ObjectId newLocation, IEnumerable<GameObjectType> restrictedTypes)
+        protected async Task<MoveResult?> Move(ObjectId newLocation, IEnumerable<GameObjectType> restrictedTypes)
         {
             if (newLocation == null)
             {
@@ -206,11 +211,11 @@ namespace Mue.Server.Core.Objects
             return MoveFinish(newLocation, oldLocation);
         }
 
-        public MoveResult MoveFinish(ObjectId newLocation, ObjectId oldLocation = null)
+        public MoveResult MoveFinish(ObjectId newLocation, ObjectId? oldLocation = null)
         {
             Meta = Meta with { Location = newLocation };
 
-            var output = new MoveResult { OldLocation = oldLocation, NewLocation = newLocation };
+            var output = new MoveResult(oldLocation, newLocation);
             FireObjectEvent(ObjectUpdate.EVENT_MOVE, output);
             return output;
         }
@@ -241,7 +246,7 @@ namespace Mue.Server.Core.Objects
             return $"'{Name}' [{Id}]";
         }
 
-        protected void FireObjectEvent(string eventName, IObjectUpdateResult meta = null)
+        protected void FireObjectEvent<T>(string eventName, T meta) where T : IObjectUpdateResult
         {
             this._world.FireObjectEvent(this.Id, eventName, meta);
         }
@@ -250,6 +255,6 @@ namespace Mue.Server.Core.Objects
     // Default inheritance type is the base ObjectMetadata
     public abstract class GameObject : GameObject<ObjectMetadata>
     {
-        protected GameObject(IWorld world, GameObjectType objType, ObjectMetadata meta, ObjectId id = null) : base(world, objType, meta, id) { }
+        protected GameObject(IWorld world, GameObjectType objType, ObjectMetadata meta, ObjectId? id = null) : base(world, objType, meta, id) { }
     }
 }

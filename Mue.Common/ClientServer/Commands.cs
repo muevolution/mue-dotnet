@@ -27,7 +27,7 @@ namespace Mue.Common.ClientServer
         /// <summary>Server intent: I am responding to your echo test.</summary>
         Task Echo(string message);
         /// <summary>Server intent: I am going to close the session.</summary>
-        Task Disconnect(string reason = null);
+        Task Disconnect(string? reason = null);
         /// <summary>Server intent: A fatal error has occured and the session will end.</summary>
         Task Fatal(string message, MueCodes code);
     }
@@ -52,7 +52,7 @@ namespace Mue.Common.ClientServer
     {
         public bool Success { get; set; } = true;
         public bool Fatal { get; set; } = false;
-        public string Message { get; set; }
+        public string? Message { get; set; }
         public MueCodes Code { get; set; } = MueCodes.Success;
     }
 }

@@ -7,16 +7,28 @@ using System.Threading.Tasks;
 
 namespace Mue.Scripting
 {
-    public class ExecutionContext
+    public class ScriptExecutionContext
     {
-        public MueEngineExecutor Executor { get; set; }
-        public Type WorldType { get; set; }
-        public object WorldInstance { get; set; }
+        public ScriptExecutionContext(MueEngineExecutor executor, Type worldType, object worldInstance)
+        {
+            this.Executor = executor;
+            this.WorldType = worldType;
+            this.WorldInstance = worldInstance;
+        }
+
+        public MueEngineExecutor Executor { get; private init; }
+        public Type WorldType { get; private init; }
+        public object WorldInstance { get; private init; }
+
+        public static ScriptExecutionContext CreateContext<T>(MueEngineExecutor executor, T worldInstance) where T : notnull
+        {
+            return new ScriptExecutionContext(executor, typeof(T), worldInstance);
+        }
     }
 
     public static class ScriptIntegrationTools
     {
-        public static dynamic BuildScript(ExecutionContext context)
+        public static dynamic BuildScript(ScriptExecutionContext context)
         {
             dynamic command = new DynamicDictionary();
             command.Command = context.Executor.CommandString;
@@ -33,7 +45,7 @@ namespace Mue.Scripting
             return script;
         }
 
-        public static dynamic DiscoverMethods<T>(ExecutionContext context)
+        public static dynamic DiscoverMethods<T>(ScriptExecutionContext context)
         {
             var output = new DynamicDictionary();
 
@@ -56,7 +68,7 @@ namespace Mue.Scripting
             return output;
         }
 
-        private static Delegate WrapMethod<T>(ExecutionContext context, MethodInfo method)
+        private static Delegate WrapMethod<T>(ScriptExecutionContext context, MethodInfo method)
         {
             LambdaExpression l;
 
@@ -77,9 +89,13 @@ namespace Mue.Scripting
             return l.Compile();
         }
 
-        private static NewExpression BuildConstructorExpression<InstanceType>(ExecutionContext context)
+        private static NewExpression BuildConstructorExpression<InstanceType>(ScriptExecutionContext context)
         {
             var constructor = typeof(InstanceType).GetConstructor(new[] { context.WorldType, typeof(MueEngineExecutor) });
+            if (constructor == null)
+            {
+                throw new MueEngineBindingException("Failed to find world constructor");
+            }
             return Expression.New(constructor, Expression.Constant(context.WorldInstance), Expression.Constant(context.Executor));
         }
 
@@ -112,7 +128,7 @@ namespace Mue.Scripting
 
         private static List<Expression> BuildTargetFuncCallParams(MethodInfo method, List<(ParameterExpression, ScriptParameterFlags)> funcParams)
         {
-            Expression<Func<IDictionary<object, object>, IDictionary<string, string>>> FixStrDict = (dict) => dict.ToDictionary(s => s.Key.ToString(), s => s.Value.ToString());
+            Expression<Func<IDictionary<object, object>, IDictionary<string, string>>> FixStrDict = (dict) => dict.ToDictionary(s => s.Key.ToString()!, s => s.Value.ToString()!);
             Expression<Func<IEnumerable<object>, IEnumerable<IEnumerable<string>>>> FixNestedStr = (str) => str.Cast<IEnumerable<object>>().Select(s => s.Cast<string>());
 
             return method.GetParameters().Select<ParameterInfo, Expression>((s, i) =>
@@ -121,7 +137,7 @@ namespace Mue.Scripting
                 var (param, paramFlag) = funcParams[i];
 
                 // Handle problematic transformation types
-                Expression transformationExpr = paramFlag switch
+                Expression? transformationExpr = paramFlag switch
                 {
                     ScriptParameterFlags.StringDictionary => Expression.Invoke(FixStrDict, param),
                     ScriptParameterFlags.NestedString => Expression.Invoke(FixNestedStr, param),
@@ -192,7 +208,7 @@ namespace Mue.Scripting
             }).ToList();
         }
 
-        private static LambdaExpression BuildSyncMethod<InstanceType>(ExecutionContext context, MethodInfo method)
+        private static LambdaExpression BuildSyncMethod<InstanceType>(ScriptExecutionContext context, MethodInfo method)
         {
             var friendlyMethodParams = BuildEntryLambdaParams(method);
             var wrappedMethodParams = BuildTargetFuncCallParams(method, friendlyMethodParams);
@@ -212,7 +228,7 @@ namespace Mue.Scripting
             return l;
         }
 
-        private static LambdaExpression BuildAsyncMethod<InstanceType>(ExecutionContext context, MethodInfo method)
+        private static LambdaExpression BuildAsyncMethod<InstanceType>(ScriptExecutionContext context, MethodInfo method)
         {
             var friendlyMethodParams = BuildEntryLambdaParams(method);
             var wrappedMethodParams = BuildTargetFuncCallParams(method, friendlyMethodParams);
@@ -228,6 +244,11 @@ namespace Mue.Scripting
             var taskVar = Expression.Variable(genericTaskType);
 
             var configureAwaitMethod = genericTaskType.GetMethod("ConfigureAwait", new[] { typeof(bool) });
+            if (configureAwaitMethod == null)
+            {
+                throw new MueEngineBindingException("Failed to get ConfigureAwait for method");
+            }
+
             var changeTaskAwaiterExpr = Expression.Call(
                 taskVar,
                 configureAwaitMethod,
@@ -250,7 +271,7 @@ namespace Mue.Scripting
             return l;
         }
 
-        private static LambdaExpression BuildAsyncReturnMethod<InstanceType>(ExecutionContext context, MethodInfo method)
+        private static LambdaExpression BuildAsyncReturnMethod<InstanceType>(ScriptExecutionContext context, MethodInfo method)
         {
             var friendlyMethodParams = BuildEntryLambdaParams(method);
             var wrappedMethodParams = BuildTargetFuncCallParams(method, friendlyMethodParams);
@@ -266,6 +287,11 @@ namespace Mue.Scripting
             var taskVar = Expression.Variable(genericTaskType);
 
             var configureAwaitMethod = genericTaskType.GetMethod("ConfigureAwait", new[] { typeof(bool) });
+            if (configureAwaitMethod == null)
+            {
+                throw new MueEngineBindingException("Failed to get ConfigureAwait for method");
+            }
+
             var changeTaskAwaiterExpr = Expression.Call(
                 taskVar,
                 configureAwaitMethod,
@@ -275,7 +301,12 @@ namespace Mue.Scripting
             var waitOnTaskExpr = Expression.Call(typeof(Task), "WaitAll", null, Expression.NewArrayInit(genericTaskType, taskVar));
 
             var resultProperty = genericTaskType.GetProperty("Result");
-            var resultGetterMethod = resultProperty.GetGetMethod();
+            var resultGetterMethod = resultProperty?.GetGetMethod();
+            if (resultGetterMethod == null)
+            {
+                throw new MueEngineBindingException("Failed to get Result getter for Task");
+            }
+
             var returnTaskResultExpr = Expression.Call(taskVar, resultGetterMethod);
 
             var l = Expression.Lambda(

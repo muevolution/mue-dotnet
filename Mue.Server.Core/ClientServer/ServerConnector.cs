@@ -41,10 +41,10 @@ namespace Mue.Server.Core.ClientServer
         private readonly IWorld _world;
         private readonly IBackendPubSub _pubSub;
         private readonly IWorldFormatter _worldFormatter;
-        private IServerToClient _client;
-        private GamePlayer _player;
-        private IDisposable _playerEventSubscription;
-        private ISubscriptionToken _psPlayerLoc;
+        private IServerToClient? _client;
+        private GamePlayer? _player;
+        private IDisposable? _playerEventSubscription;
+        private ISubscriptionToken? _psPlayerLoc;
         private List<ISubscriptionToken> _subTokens = new List<ISubscriptionToken>();
 
         public bool IsConnected { get; private set; }
@@ -112,7 +112,7 @@ namespace Mue.Server.Core.ClientServer
 
         public async Task<OperationResponse> OnCommand(CommandRequest message)
         {
-            if (!IsAuthenticated)
+            if (!IsAuthenticated || _player == null)
             {
                 return new OperationResponse { Success = false, Fatal = false, Message = "You have not yet authenticated.", Code = MueCodes.UnauthenticatedError };
             }
@@ -123,6 +123,11 @@ namespace Mue.Server.Core.ClientServer
 
         public async Task<OperationResponse> OnEcho(string message)
         {
+            if (_client == null)
+            {
+                return new OperationResponse { Success = false };
+            }
+
             await _client.SendEcho(message);
             return new OperationResponse();
         }
@@ -131,7 +136,7 @@ namespace Mue.Server.Core.ClientServer
         {
             if (!IsConnected)
             {
-                return null;
+                return new OperationResponse { Success = false };
             }
 
             await Quit();
@@ -146,6 +151,11 @@ namespace Mue.Server.Core.ClientServer
 
         private async Task OnPubSubMessage(string channel, string message)
         {
+            if (_client == null || _player == null)
+            {
+                return;
+            }
+
             var displayedChannel = channel.Substring(2);
             if (displayedChannel == this._player.Id.Id)
             {
@@ -153,33 +163,36 @@ namespace Mue.Server.Core.ClientServer
             }
 
             var msgObj = Json.Deserialize<InteriorMessage>(message);
+            if (msgObj == null)
+            {
+                return;
+            }
+
             var eventTarget = msgObj.Target != null ? msgObj.Target : "message";
 
             switch (eventTarget)
             {
                 case "message":
-                    var msgString = GetLocalMessage(msgObj);
-                    if (msgString == null || (msgString.Message == null && msgString.Format == null))
+                    var localMsg = GetLocalMessage(msgObj);
+                    if (localMsg == null || (localMsg.Message == null && localMsg.Format == null))
                     {
                         break;
                     }
 
-                    var extendedContent = MergeSubstitutions(msgObj.ExtendedContent, msgString.Substitutions);
+                    var extendedContent = MergeSubstitutions(msgObj.ExtendedContent, localMsg.Substitutions);
 
-                    var output = new CommunicationsMessage
+                    var output = new CommunicationsMessage(localMsg?.Message ?? msgObj.Message)
                     {
-                        Target = displayedChannel,
-                        ExtendedFormat = msgString.Format,
-                        ExtendedContent = extendedContent,
-                        Message = msgString.Message,
                         Source = msgObj.Source,
+                        Target = displayedChannel,
+                        ExtendedFormat = localMsg?.Format,
+                        ExtendedContent = extendedContent,
                         Meta = msgObj.Meta,
                     };
 
                     await _client.SendMessage(output, MueCodes.Success);
 
                     break;
-
                 case "echo":
                     if (!String.IsNullOrWhiteSpace(msgObj.Message))
                     {
@@ -189,7 +202,7 @@ namespace Mue.Server.Core.ClientServer
             }
         }
 
-        private async Task Quit(string reason = null)
+        private async Task Quit(string? reason = null)
         {
             if (_player != null)
             {
@@ -220,8 +233,11 @@ namespace Mue.Server.Core.ClientServer
 
                     if (m.OldLocation != null)
                     {
-                        await _pubSub.Unsubscribe(_psPlayerLoc);
-                        _subTokens.Remove(_psPlayerLoc);
+                        if (_psPlayerLoc != null)
+                        {
+                            await _pubSub.Unsubscribe(_psPlayerLoc);
+                            _subTokens.Remove(_psPlayerLoc);
+                        }
                     }
 
                     _psPlayerLoc = await _pubSub.Subscribe($"c:{m.NewLocation}", OnPubSubMessage);
@@ -232,7 +248,7 @@ namespace Mue.Server.Core.ClientServer
             return Unit.Default;
         }
 
-        private IReadOnlyDictionary<string, string> MergeSubstitutions(IReadOnlyDictionary<string, string> dictA, IReadOnlyDictionary<string, string> dictB)
+        private IReadOnlyDictionary<string, string> MergeSubstitutions(IReadOnlyDictionary<string, string>? dictA, IReadOnlyDictionary<string, string>? dictB)
         {
             var outputDict = new Dictionary<string, string>();
             if (dictA != null)
@@ -254,23 +270,28 @@ namespace Mue.Server.Core.ClientServer
 
         private FormattedMessage GetLocalMessage(InteriorMessage msg)
         {
+            if (_player == null)
+            {
+                // This shouldn't happen but handle it anyway
+                return new FormattedMessage(msg.Message);
+            }
+
             if (msg.ExtendedFormat != null && msg.ExtendedContent != null)
             {
                 var format = (msg.Source == this._player.Id.Id) ? msg.ExtendedFormat?.FirstPerson : msg.ExtendedFormat?.ThirdPerson;
-                var formatted = _worldFormatter.Format(format, msg.ExtendedContent);
-
-                return new FormattedMessage
+                if (format != null)
                 {
-                    Message = formatted.Message,
-                    Substitutions = formatted.Substitutions,
-                    Format = format,
-                };
+                    var formatted = _worldFormatter.Format(format, msg.ExtendedContent);
+
+                    return new FormattedMessage(formatted.Message)
+                    {
+                        Substitutions = formatted.Substitutions,
+                        Format = format,
+                    };
+                }
             }
 
-            return new FormattedMessage
-            {
-                Message = msg.Message,
-            };
+            return new FormattedMessage(msg.Message);
         }
     }
 }

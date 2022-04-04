@@ -13,7 +13,7 @@ namespace Mue.Server.Core.System.CommandBuiltins
         {
             var output = new StringBuilder();
 
-            IGameObject target;
+            IGameObject? target;
             if (!String.IsNullOrWhiteSpace(command.Args))
             {
                 var targetId = await player.ResolveTarget(command.Args);

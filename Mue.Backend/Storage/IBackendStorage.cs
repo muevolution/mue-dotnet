@@ -12,7 +12,7 @@ namespace Mue.Backend.Storage
     public interface IBackendStorageOperations
     {
         // General operations
-        Task<string> KeyGet(string key);
+        Task<string?> KeyGet(string key);
         Task<bool> KeySet(string key, string value);
         Task<bool> KeyDelete(string key);
 
@@ -25,7 +25,7 @@ namespace Mue.Backend.Storage
         // Hash operations
         Task<IReadOnlyDictionary<string, string>> HashGetAll(string key);
         Task<bool> HashSetAll(string key, IReadOnlyDictionary<string, string> values);
-        Task<string> HashGetField(string key, string field);
+        Task<string?> HashGetField(string key, string field);
         Task<bool> HashSetField(string key, string field, string value);
         Task<bool> HashDeleteField(string key, string field);
     }

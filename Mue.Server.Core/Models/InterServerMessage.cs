@@ -11,42 +11,33 @@ namespace Mue.Server.Core.Models
     }
 
     /// <summary>ISM message is serialized to JSON so it needs weaker typing</summary>
-    public record InterServerMessage : IGlobalUpdate
+    public record InterServerMessage(
+        string InstanceId,
+        string EventName,
+        IDictionary<string, string>? Meta = null
+    ) : IGlobalUpdate
     {
         public const string EVENT_JOINED = "joined";
         public const string EVENT_INVALIDATE_SCRIPT = "invalidate_script";
         public const string EVENT_UPDATE_OBJECT = "update_object";
         public const string EVENT_UPDATE_PLAYER = "update_player";
 
-        public string InstanceId { get; init; }
         public DateTime EventTime { get; init; } = TimeUtil.MueNow;
-        public string EventName { get; init; }
-        public IDictionary<string, string> Meta { get; init; }
 
         public static InterServerMessage CreateJoinedMessage(string instanceName)
         {
-            return new InterServerMessage
-            {
-                InstanceId = instanceName,
-                EventName = EVENT_JOINED,
-            };
+            return new InterServerMessage(instanceName, EVENT_JOINED);
         }
 
         public static InterServerMessage CreateInvalidateScript(string instanceName)
         {
-            return new InterServerMessage
-            {
-                InstanceId = instanceName,
-                EventName = EVENT_INVALIDATE_SCRIPT,
-            };
+            return new InterServerMessage(instanceName, EVENT_INVALIDATE_SCRIPT);
         }
 
         public static InterServerMessage CreateObjectUpdate(string instanceName, string objectId, string updateType)
         {
-            return new InterServerMessage
+            return new InterServerMessage(instanceName, EVENT_UPDATE_OBJECT)
             {
-                InstanceId = instanceName,
-                EventName = EVENT_UPDATE_OBJECT,
                 Meta = new Dictionary<string, string> {
                     {"id", objectId},
                     {"message", updateType},
@@ -56,10 +47,8 @@ namespace Mue.Server.Core.Models
 
         public static InterServerMessage CreatePlayerUpdate(string instanceName, string objectId, string updateType)
         {
-            return new InterServerMessage
+            return new InterServerMessage(instanceName, EVENT_UPDATE_PLAYER)
             {
-                InstanceId = instanceName,
-                EventName = EVENT_UPDATE_PLAYER,
                 Meta = new Dictionary<string, string> {
                     {"id", objectId},
                     {"message", updateType},
@@ -68,7 +57,11 @@ namespace Mue.Server.Core.Models
         }
     }
 
-    public record ObjectUpdate : IGlobalUpdate
+    public record ObjectUpdate(
+        ObjectId Id,
+        string EventName,
+        IObjectUpdateResult? Meta = null
+    ) : IGlobalUpdate
     {
         public const string EVENT_MOVE = "move";
         public const string EVENT_REPARENT = "reparent";
@@ -76,13 +69,14 @@ namespace Mue.Server.Core.Models
         public const string EVENT_INVALIDATE = "invalidate";
         public const string EVENT_DESTROY = "destroy";
 
-        public ObjectId Id { get; init; }
         public DateTime EventTime { get; init; } = TimeUtil.MueNow;
-        public string EventName { get; init; }
-        public IObjectUpdateResult Meta { get; init; }
     }
 
-    public record PlayerUpdate : ObjectUpdate
+    public record PlayerUpdate(
+        ObjectId Id,
+        string EventName,
+        IObjectUpdateResult? Meta = null
+    ) : ObjectUpdate(Id, EventName, Meta)
     {
         public const string EVENT_CONNECT = "connect";
         public const string EVENT_DISCONNECT = "disconnect";
@@ -96,23 +90,11 @@ namespace Mue.Server.Core.Models
         public static EmptyObjectUpdateResult Empty = new EmptyObjectUpdateResult();
     }
 
-    public record RenameResult : IObjectUpdateResult
-    {
-        public string OldName { get; init; }
-        public string NewName { get; init; }
-    }
+    public record RenameResult(string? OldName, string NewName) : IObjectUpdateResult;
 
-    public record ReparentResult : IObjectUpdateResult
-    {
-        public ObjectId OldParent { get; init; }
-        public ObjectId NewParent { get; init; }
-    }
+    public record ReparentResult(ObjectId? OldParent, ObjectId NewParent) : IObjectUpdateResult;
 
-    public record MoveResult : IObjectUpdateResult
-    {
-        public ObjectId OldLocation { get; init; }
-        public ObjectId NewLocation { get; init; }
-    }
+    public record MoveResult(ObjectId? OldLocation, ObjectId NewLocation) : IObjectUpdateResult;
 
     public interface IPlayerUpdateResult : IObjectUpdateResult { }
 
@@ -122,8 +104,5 @@ namespace Mue.Server.Core.Models
         public int RemainingConnections { get; init; }
     }
 
-    public record QuitResult : IPlayerUpdateResult
-    {
-        public string Reason { get; init; }
-    }
+    public record QuitResult(string? Reason) : IPlayerUpdateResult;
 }

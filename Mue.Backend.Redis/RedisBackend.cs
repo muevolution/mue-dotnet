@@ -20,7 +20,7 @@ namespace Mue.Backend
             Connection?.Dispose();
         }
 
-        public ConnectionMultiplexer Connection { get; private set; }
+        public ConnectionMultiplexer? Connection { get; private set; }
 
         public async Task Connect()
         {
@@ -35,14 +35,14 @@ namespace Mue.Backend
             }
         }
 
-        public IServer GetServer() {
+        public IServer? GetServer() {
             // TODO: This should probably return an enum with all of them
             // We're not clustering right now so it's fine but this is a future warning
-            return Connection.GetServer(Connection.GetEndPoints().First());
+            return Connection?.GetServer(Connection?.GetEndPoints()?.First());
         }
 
         public Task FlushDb() {
-            return GetServer().FlushDatabaseAsync();
+            return GetServer()?.FlushDatabaseAsync() ?? Task.CompletedTask;
         }
     }
 }

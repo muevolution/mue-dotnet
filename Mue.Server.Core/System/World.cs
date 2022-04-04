@@ -68,16 +68,12 @@ namespace Mue.Server.Core.System
         public IStorageManager StorageManager => _systemFactory.StorageManager;
         public IObjectCache ObjectCache => _systemFactory.ObjectCache;
 
-        public Task<bool> PublishMessage(string message, IGameObject target = null, IDictionary<string, string> meta = null)
+        public Task<bool> PublishMessage(string message, IGameObject? target = null, IDictionary<string, string>? meta = null)
         {
-            return PublishMessage(new InteriorMessage
-            {
-                Message = message,
-                Meta = meta,
-            }, target);
+            return PublishMessage(new InteriorMessage(message) { Meta = meta }, target);
         }
 
-        public async Task<bool> PublishMessage(InteriorMessage message, IGameObject target = null)
+        public async Task<bool> PublishMessage(InteriorMessage message, IGameObject? target = null)
         {
             StateEnforce();
 
@@ -109,7 +105,7 @@ namespace Mue.Server.Core.System
             return CommandProcessor.ProcessCommand(player, command);
         }
 
-        public async Task<GamePlayer> GetPlayerByName(string name)
+        public async Task<GamePlayer?> GetPlayerByName(string name)
         {
             StateEnforce();
 
@@ -156,7 +152,7 @@ namespace Mue.Server.Core.System
             return root;
         }
 
-        public async Task<IGameObject> GetObjectById(ObjectId id, GameObjectType? assertType = null)
+        public async Task<IGameObject?> GetObjectById(ObjectId? id, GameObjectType? assertType = null)
         {
             StateEnforce();
 
@@ -182,13 +178,18 @@ namespace Mue.Server.Core.System
             });
         }
 
-        public async Task<T> GetObjectById<T>(ObjectId id) where T : IGameObject
+        public async Task<T?> GetObjectById<T>(ObjectId? id) where T : IGameObject
         {
             var result = await GetObjectById(id, GameObjectConsts.GetGameObjectType<T>());
+            if (result == null)
+            {
+                return default(T);
+            }
+
             return (T)result;
         }
 
-        public async Task<IEnumerable<T>> GetObjectsById<T>(IEnumerable<ObjectId> ids) where T : IGameObject
+        public async Task<IEnumerable<T?>> GetObjectsById<T>(IEnumerable<ObjectId?> ids) where T : IGameObject
         {
             StateEnforce();
 
@@ -196,7 +197,7 @@ namespace Mue.Server.Core.System
             return r;
         }
 
-        public async Task<IEnumerable<IGameObject>> GetObjectsById(IEnumerable<ObjectId> ids)
+        public async Task<IEnumerable<IGameObject?>> GetObjectsById(IEnumerable<ObjectId?> ids)
         {
             StateEnforce();
 
@@ -252,6 +253,12 @@ namespace Mue.Server.Core.System
         private void InterServerActivity(string topic, string message)
         {
             var msg = Json.Deserialize<InterServerMessage>(message);
+            if (msg == null)
+            {
+                // Ignore empty messages
+                return;
+            }
+
             if (msg.InstanceId == WorldInstanceId)
             {
                 // Ignore messages from our own instance
@@ -267,7 +274,7 @@ namespace Mue.Server.Core.System
                 _logger.LogInformation("ISC> [{thisInstance}] Script cache invalidate was requested by {originInstance}", WorldInstanceId, msg.InstanceId);
                 ObjectCache.InvalidateAll(GameObjectType.Script).ConfigureAwait(false);
             }
-            else if (msg.EventName == InterServerMessage.EVENT_UPDATE_OBJECT)
+            else if (msg.EventName == InterServerMessage.EVENT_UPDATE_OBJECT && msg.Meta != null)
             {
                 // TODO: Better handling of meta
                 _logger.LogInformation("ISC> [{thisInstance}] Object {objectId} {objectMessage} update requested by {originInstance}", WorldInstanceId, msg.Meta["id"], msg.Meta["message"], msg.InstanceId);
@@ -282,7 +289,7 @@ namespace Mue.Server.Core.System
                     ObjectCache.PostNetworkDestroy(new ObjectId(msg.Meta["id"]));
                 }
             }
-            else if (msg.EventName == InterServerMessage.EVENT_UPDATE_PLAYER)
+            else if (msg.EventName == InterServerMessage.EVENT_UPDATE_PLAYER && msg.Meta != null)
             {
                 if (msg.Meta["message"] == "connect")
                 {

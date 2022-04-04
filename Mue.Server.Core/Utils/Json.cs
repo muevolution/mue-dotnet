@@ -21,24 +21,29 @@ namespace Mue.Server.Core.Utils
             return settings;
         }
 
-        public static string Serialize<T>(T obj)
+        public static string Serialize<T>(T? obj)
         {
             return JsonConvert.SerializeObject(obj, JsonConfig);
         }
 
-        public static T Deserialize<T>(string json)
+        public static T? Deserialize<T>(string json)
         {
+            if (String.IsNullOrEmpty(json))
+            {
+                return default(T);
+            }
+
             return JsonConvert.DeserializeObject<T>(json, JsonConfig);
         }
 
         public static IReadOnlyDictionary<string, string> ToFlatDictionary<T>(T obj)
         {
-            return Deserialize<Dictionary<string, string>>(Serialize(obj));
+            return Deserialize<Dictionary<string, string>>(Serialize(obj))!;
         }
 
         public static T FromFlatDictionary<T>(IReadOnlyDictionary<string, string> dict)
         {
-            return Deserialize<T>(Serialize(dict));
+            return Deserialize<T>(Serialize(dict))!;
         }
     }
 }

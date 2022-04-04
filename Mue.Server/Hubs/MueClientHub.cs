@@ -28,7 +28,7 @@ namespace Mue.Server.Hubs
             await base.OnConnectedAsync();
         }
 
-        public override async Task OnDisconnectedAsync(Exception exception)
+        public override async Task OnDisconnectedAsync(Exception? exception)
         {
             await Server.OnDisconnect();
             _connMgr.Connections.Remove(this.Context.ConnectionId);
@@ -57,12 +57,11 @@ namespace Mue.Server.Hubs
             }
             else
             {
-                var conn = new MueConnection
-                {
-                    ConnectionId = connId,
-                    Server = _serviceProvider.GetRequiredService<IClientToServer>(),
-                    Client = new MueHubServerToClient(Clients.Caller),
-                };
+                var conn = new MueConnection(
+                    connId,
+                    _serviceProvider.GetRequiredService<IClientToServer>(),
+                    new MueHubServerToClient(Clients.Caller)
+                );
 
                 _connMgr.Connections[this.Context.ConnectionId] = conn;
                 return conn;
@@ -82,7 +81,7 @@ namespace Mue.Server.Hubs
         public Task SendWelcome(string motd) => _caller.Welcome(motd);
         public Task SendMessage(CommunicationsMessage message, MueCodes code) => _caller.Message(message, code);
         public Task SendEcho(string message) => _caller.Echo(message);
-        public Task SendDisconnect(string reason = null) => _caller.Disconnect(reason);
+        public Task SendDisconnect(string? reason = null) => _caller.Disconnect(reason);
         public Task SendFatal(string message, MueCodes code) => _caller.Fatal(message, code);
     }
 }

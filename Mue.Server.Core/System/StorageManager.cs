@@ -64,7 +64,7 @@ namespace Mue.Server.Core.System
 
             await using (var transact = _storage.StartTransaction())
             {
-                UpdateHash(transact, StorageManagerKeys.GetMetaKeyStructure(obj.Id), obj.MetaBasic.ToDictionary());
+                UpdateHash(transact, StorageManagerKeys.GetMetaKeyStructure(obj.Id), obj.MetaBasic.ToDictionary()!);
                 await transact.SetAdd(StorageManagerKeys.GetObjectKeyStructure(obj.Id), obj.Id.Id);
 
                 if (obj.ObjectType == GameObjectType.Player)
@@ -127,7 +127,7 @@ namespace Mue.Server.Core.System
             return _storage.HashGetAll(StorageManagerKeys.GetByNameKeyStructure(GameObjectType.Player));
         }
 
-        public Task<string> FindPlayerByName(string name)
+        public Task<string?> FindPlayerByName(string name)
         {
             return _storage.HashGetField(StorageManagerKeys.GetByNameKeyStructure(GameObjectType.Player), name.ToLower());
         }
@@ -170,7 +170,7 @@ namespace Mue.Server.Core.System
         public async Task<bool> SetProps(ObjectId owner, IReadOnlyDictionary<string, PropValue> values)
         {
             var key = StorageManagerKeys.GetPropKeyStructure(owner);
-            var serialized = values.ToDictionary(s => s.Key, s => s.Value.ToJsonString());
+            var serialized = values.ToDictionary(s => s.Key, s => s.Value.ToJsonString()).WhereNotNull();
 
             await using (var transact = _storage.StartTransaction())
             {
@@ -193,7 +193,7 @@ namespace Mue.Server.Core.System
             return contentsIds.Where(w => w.ObjectType == type.Value);
         }
 
-        public async Task<bool> ReparentObject(ObjectId objectId, ObjectId newParent, ObjectId oldParent = null)
+        public async Task<bool> ReparentObject(ObjectId objectId, ObjectId newParent, ObjectId? oldParent = null)
         {
             await using (var transact = _storage.StartTransaction())
             {
@@ -201,7 +201,7 @@ namespace Mue.Server.Core.System
             }
         }
 
-        public async Task<bool> MoveObject(ObjectId objectId, ObjectId newLocation, ObjectId oldLocation = null)
+        public async Task<bool> MoveObject(ObjectId objectId, ObjectId newLocation, ObjectId? oldLocation = null)
         {
             await using (var transact = _storage.StartTransaction())
             {
@@ -209,7 +209,7 @@ namespace Mue.Server.Core.System
             }
         }
 
-        public async Task<bool> MoveObjects(IEnumerable<ObjectId> objectIds, ObjectId newLocation, ObjectId oldLocation = null)
+        public async Task<bool> MoveObjects(IEnumerable<ObjectId> objectIds, ObjectId newLocation, ObjectId? oldLocation = null)
         {
             await using (var transact = _storage.StartTransaction())
             {
@@ -219,7 +219,7 @@ namespace Mue.Server.Core.System
             }
         }
 
-        public async Task<MD> GetMeta<MD>(ObjectId objectId) where MD : ObjectMetadata
+        public async Task<MD?> GetMeta<MD>(ObjectId objectId) where MD : ObjectMetadata
         {
             var result = await _storage.HashGetAll(StorageManagerKeys.GetMetaKeyStructure(objectId));
             if (result.Count < 1)
@@ -231,12 +231,12 @@ namespace Mue.Server.Core.System
             return meta;
         }
 
-        public Task<ObjectMetadata> GetMeta(ObjectId objectId)
+        public Task<ObjectMetadata?> GetMeta(ObjectId objectId)
         {
             return GetMeta<ObjectMetadata>(objectId);
         }
 
-        public Task<string> GetMeta(ObjectId objectId, string key)
+        public Task<string?> GetMeta(ObjectId objectId, string key)
         {
             return _storage.HashGetField(StorageManagerKeys.GetMetaKeyStructure(objectId), key);
         }
@@ -258,7 +258,7 @@ namespace Mue.Server.Core.System
             return UpdateHash(StorageManagerKeys.GetMetaKeyStructure(objectId), key, value);
         }
 
-        public Task<string> GetRootValue(RootField field)
+        public Task<string?> GetRootValue(RootField field)
         {
             return _storage.HashGetField(StorageManagerKeys.GetRootKey(), RootFieldConsts.GetRootFieldString(field));
         }
@@ -268,7 +268,7 @@ namespace Mue.Server.Core.System
             return _storage.HashSetField(StorageManagerKeys.GetRootKey(), RootFieldConsts.GetRootFieldString(field), value);
         }
 
-        public Task<string> GetScriptCode(ObjectId objectId)
+        public Task<string?> GetScriptCode(ObjectId objectId)
         {
             return _storage.KeyGet(StorageManagerKeys.GetScriptKeyStructure(objectId));
         }
@@ -280,7 +280,7 @@ namespace Mue.Server.Core.System
 
         // Helper methods
 
-        private async Task<bool> ReparentMoveInTransaction(IBackendStorageTransaction transact, string type, ObjectId id, ObjectId newOwner, ObjectId oldOwner = null, bool writeMeta = true)
+        private async Task<bool> ReparentMoveInTransaction(IBackendStorageTransaction transact, string type, ObjectId id, ObjectId newOwner, ObjectId? oldOwner = null, bool writeMeta = true)
         {
             if (newOwner == null)
             {
@@ -313,7 +313,7 @@ namespace Mue.Server.Core.System
             return true;
         }
 
-        private Task<bool> UpdateHash(string key, string field, string value)
+        private Task<bool> UpdateHash(string key, string field, string? value)
         {
             if (value == null)
             {
@@ -325,7 +325,7 @@ namespace Mue.Server.Core.System
             }
         }
 
-        private void UpdateHash(IBackendStorageTransaction transact, string key, IReadOnlyDictionary<string, string> values)
+        private void UpdateHash(IBackendStorageTransaction transact, string key, IReadOnlyDictionary<string, string?> values)
         {
             foreach (var val in values)
             {

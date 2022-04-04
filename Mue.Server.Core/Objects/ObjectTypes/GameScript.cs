@@ -7,7 +7,7 @@ namespace Mue.Server.Core.Objects
 {
     public class GameScript : GameObject
     {
-        public static Task<GameScript> Create(IWorld world, string name, ObjectId creator, ObjectId location = null)
+        public static Task<GameScript> Create(IWorld world, string name, ObjectId creator, ObjectId? location = null)
         {
             var p = new GameScript(world, new ObjectMetadata
             {
@@ -31,9 +31,9 @@ namespace Mue.Server.Core.Objects
             });
         }
 
-        public string Code { get; private set; }
+        public string? Code { get; private set; }
 
-        protected GameScript(IWorld world, ObjectMetadata meta, ObjectId id = null) : base(world, GameObjectType.Script, meta, id) { }
+        protected GameScript(IWorld world, ObjectMetadata meta, ObjectId? id = null) : base(world, GameObjectType.Script, meta, id) { }
 
         public override async Task<bool> Invalidate()
         {

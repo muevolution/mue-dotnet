@@ -20,18 +20,18 @@ namespace Mue.Backend.Storage
     class RedisStorageOps : IBackendStorageOperations
     {
         protected RedisBackend _backend;
-        protected IDatabase _db { get { return _backend.Connection.GetDatabase(); } }
+        protected IDatabase _db { get { return _backend.Connection?.GetDatabase() ?? throw new Exception("Connection was not open!"); } }
 
         public RedisStorageOps(RedisBackend backend)
         {
             _backend = backend;
         }
 
-        public Task<string> KeyGet(string key) => AsStr(_db.StringGetAsync(key));
+        public Task<string?> KeyGet(string key) => AsStr(_db.StringGetAsync(key));
         public Task<bool> KeySet(string key, string value) => _db.StringSetAsync(key, value);
         public Task<bool> KeyDelete(string key) => _db.KeyDeleteAsync(key);
 
-        public Task<IEnumerable<string>> SetMembers(string key) => AsStr(_db.SetMembersAsync(key));
+        public Task<IEnumerable<string>> SetMembers(string key) => AsStrNotNull(_db.SetMembersAsync(key));
         public Task<bool> SetContains(string key, string value) => _db.SetContainsAsync(key, value);
         public Task<bool> SetAdd(string key, string value) => _db.SetAddAsync(key, value);
         public Task<bool> SetRemove(string key, string value) => _db.SetRemoveAsync(key, value);
@@ -48,22 +48,28 @@ namespace Mue.Backend.Storage
             return true;
         }
 
-        public Task<string> HashGetField(string key, string field) => AsStr(_db.HashGetAsync(key, field));
+        public Task<string?> HashGetField(string key, string field) => AsStr(_db.HashGetAsync(key, field));
         public Task<bool> HashSetField(string key, string field, string value) => _db.HashSetAsync(key, field, value);
         public Task<bool> HashDeleteField(string key, string field) => _db.HashDeleteAsync(key, field);
 
-        private async Task<string> AsStr(Task<RedisValue> val)
+        private async Task<string?> AsStr(Task<RedisValue> val)
         {
             return await val;
         }
 
-        private async Task<IEnumerable<string>> AsStr(Task<IEnumerable<RedisValue>> val)
+        private async Task<IEnumerable<string?>> AsStr(Task<IEnumerable<RedisValue>> val)
         {
             var items = await val;
             return items.Select(s => (string)s);
         }
 
-        private async Task<IEnumerable<string>> AsStr(Task<RedisValue[]> val)
+        private async Task<IEnumerable<string?>> AsStr(Task<RedisValue[]> val)
+        {
+            var items = await val;
+            return items.Select(s => (string)s);
+        }
+
+        private async Task<IEnumerable<string>> AsStrNotNull(Task<RedisValue[]> val)
         {
             var items = await val;
             return items.Select(s => (string)s);

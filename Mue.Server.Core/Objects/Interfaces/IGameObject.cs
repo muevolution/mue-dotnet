@@ -22,7 +22,7 @@ namespace Mue.Server.Core.Objects
         string Name { get; }
         ObjectId Parent { get; }
         bool IsParentRoot { get; }
-        ObjectId Location { get; }
+        ObjectId? Location { get; }
         bool IsLocationRoot { get; }
         Task<PropValue> GetProp(string path);
         Task<IReadOnlyDictionary<string, PropValue>> GetProps();
@@ -30,9 +30,9 @@ namespace Mue.Server.Core.Objects
         Task<bool> SetProps(IReadOnlyDictionary<string, PropValue> values);
         bool MatchName(string term);
         Task<bool> Rename(string newName);
-        Task<ReparentResult> Reparent(ObjectId newParent);
-        Task<MoveResult> Move(ObjectId newLocation);
-        MoveResult MoveFinish(ObjectId newLocation, ObjectId oldLocation = null);
+        Task<ReparentResult?> Reparent(ObjectId newParent);
+        Task<MoveResult?> Move(ObjectId newLocation);
+        MoveResult MoveFinish(ObjectId newLocation, ObjectId? oldLocation = null);
         Task<bool> Destroy();
         Task<bool> Invalidate();
     }

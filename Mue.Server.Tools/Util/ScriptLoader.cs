@@ -25,7 +25,7 @@ namespace Mue.Server.Tools
             return Directory.GetFiles(SCRIPT_DIR, "*.py").Select(s => Path.GetFileName(s));
         }
 
-        private async Task UpdateScript(string filename, ObjectId creator, ObjectId location, ObjectId actionDestination = null)
+        private async Task UpdateScript(string filename, ObjectId creator, ObjectId location, ObjectId? actionDestination = null)
         {
             var scriptCreated = false;
             var rootRoom = await _world.GetRootRoom();
@@ -57,7 +57,7 @@ namespace Mue.Server.Tools
             }
         }
 
-        public async Task UpdateScripts(ObjectId creator, ObjectId location, ObjectId actionDestination = null)
+        public async Task UpdateScripts(ObjectId creator, ObjectId location, ObjectId? actionDestination = null)
         {
             var scripts = GetScripts();
 

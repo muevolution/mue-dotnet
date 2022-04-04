@@ -8,8 +8,8 @@ namespace Mue.Server.Core.System
 {
     public interface IObjectCache
     {
-        IGameObject GetObject(ObjectId id);
-        T GetObject<T>(ObjectId id) where T : class, IGameObject;
+        IGameObject? GetObject(ObjectId id);
+        T? GetObject<T>(ObjectId id) where T : class, IGameObject;
         bool HasObjectId(ObjectId id);
         Task<T> StandardCreate<T>(T obj) where T : IGameObject;
         Task<T> StandardImitate<T>(ObjectId id, Func<ObjectMetadata, Task<T>> builder) where T : class, IGameObject<ObjectMetadata>;

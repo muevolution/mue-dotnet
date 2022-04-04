@@ -74,7 +74,7 @@ namespace Mue.Clients.Telnet
 
                             try
                             {
-                                line = await reader.ReadLineAsync();
+                                line = await reader.ReadLineAsync() ?? String.Empty;
                                 Console.WriteLine("Saw line from client: " + line);
                                 await ProcessLine(cliSession, sessionState, line, writer);
                             }
@@ -98,6 +98,12 @@ namespace Mue.Clients.Telnet
 
         private async Task ProcessLine(HubClientSession cliSession, AuthManager sessionState, string line, StreamWriter writer)
         {
+            if (cliSession.Client == null)
+            {
+                // Client shouldn't be null by now, but if it is don't continue
+                return;
+            }
+
             if (!sessionState.IsAuthenticated)
             {
                 if (line.StartsWith("auth ") || line.StartsWith("connect "))
@@ -110,7 +116,7 @@ namespace Mue.Clients.Telnet
                         return;
                     }
 
-                    var authRequest = new AuthRequest { Username = spl[1], Password = spl[2] };
+                    var authRequest = new AuthRequest(spl[1], spl[2]);
                     await sessionState.PerformAuthentication(writer, authRequest);
                 }
                 else if (line.StartsWith("register "))
@@ -123,7 +129,7 @@ namespace Mue.Clients.Telnet
                         return;
                     }
 
-                    var res = await cliSession.Client.Auth(new AuthRequest { IsRegistration = true, Username = spl[1], Password = spl[2] });
+                    var res = await cliSession.Client.Auth(new AuthRequest(spl[1], spl[2], true));
                     if (res.Fatal)
                     {
                         throw new Exception("Command threw fatal: " + res.Message);
@@ -146,7 +152,7 @@ namespace Mue.Clients.Telnet
             }
             else
             {
-                var res = await cliSession.Client.Command(new CommandRequest { Command = line });
+                var res = await cliSession.Client.Command(new CommandRequest(line));
                 if (res.Fatal)
                 {
                     throw new Exception("Command threw fatal: " + res.Message);

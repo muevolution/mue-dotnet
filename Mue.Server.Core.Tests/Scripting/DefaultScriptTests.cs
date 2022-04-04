@@ -21,12 +21,9 @@ public class DefaultScriptTests
 
     private (PythonScriptEngine, DynamicDictionary) PrepareTest(string commandString, string commandArgs = null)
     {
-        var executor = new MueEngineExecutor
+        var executor = new MueEngineExecutor(commandString, PlayerIdStr, ScriptIdStr)
         {
-            CommandString = commandString,
             CommandArgs = commandArgs,
-            RunBy = PlayerIdStr,
-            ThisScript = ScriptIdStr,
         };
         var si = ScriptIntegration.Build(_sys.World.Object, executor, true);
 
@@ -60,7 +57,7 @@ public class DefaultScriptTests
 
         Func<InteriorMessage, bool> verifyInteriorMessage = (im) =>
         {
-            Assert.Null(im.Message);
+            Assert.Equal(String.Empty, im.Message);
             Assert.Null(im.Meta);
             Assert.Equal("Hello", im.ExtendedContent["message"]);
             Assert.Equal(2, im.ExtendedContent.Count);

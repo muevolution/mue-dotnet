@@ -12,10 +12,9 @@ namespace Mue.Server.Core.System.CommandBuiltins
         public async Task Unknown(GamePlayer player, LocalCommand command)
         {
             // TODO: Return this as its own event type (or maybe with a flag on message)
-            var msg = new InteriorMessage
+            var msg = new InteriorMessage($"Unknown command '{command.Command}'")
             {
                 Source = player.Id.ToString(),
-                Message = $"Unknown command '{command.Command}'",
                 Meta = new Dictionary<string, string> {
                     {CommunicationsMessage.META_ERRTYPE, "UNKNOWN_COMMAND"},
                     {"original", Json.Serialize(command)},

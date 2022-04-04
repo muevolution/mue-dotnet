@@ -25,13 +25,10 @@ namespace Mue.Server.Core.Scripting
             using (var scope = _serviceProvider.CreateScope())
             {
                 var engine = scope.ServiceProvider.GetRequiredService<IScriptEngine>();
-                var executor = new MueEngineExecutor
+                var executor = new MueEngineExecutor(command.Command, runBy.Id.Id, script.Id.Id)
                 {
-                    CommandString = command.Command,
                     CommandArgs = command.Args,
                     CommandParams = command.Params != null ? new Dictionary<string, string>(command.Params) : new Dictionary<string, string>(),
-                    RunBy = runBy.Id.Id,
-                    ThisScript = script.Id.Id,
                 };
                 var integration = ScriptIntegration.Build(_world, executor);
 

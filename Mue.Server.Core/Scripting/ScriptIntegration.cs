@@ -11,12 +11,7 @@ namespace Mue.Server.Core.Scripting
         {
             dynamic output = new DynamicDictionary();
 
-            var context = new ExecutionContext
-            {
-                Executor = executor,
-                WorldType = typeof(IWorld),
-                WorldInstance = world,
-            };
+            var context = ScriptExecutionContext.CreateContext(executor, world);
 
             output.Script = ScriptIntegrationTools.BuildScript(context);
             output.World = ScriptIntegrationTools.DiscoverMethods<MueScriptWorld>(context);

@@ -62,7 +62,7 @@ namespace Mue.Clients.Telnet
             await _clientWriter.WriteLineAsync($"ECHO> {message}");
         }
 
-        public async Task Disconnect(string reason = null)
+        public async Task Disconnect(string? reason = null)
         {
             await _clientWriter.WriteLineAsync($"QUIT> {reason ?? ""}");
             _cts.Cancel();

@@ -10,13 +10,13 @@ namespace Mue.Scripting
 {
     public class PythonScriptEngine : IScriptEngine
     {
-        public string ScriptName { get; private set; }
-        public string ScriptText { get; private set; }
-        public uint ScriptTimeout { get; private set; }
-        private dynamic _binding;
-        private Thread _scriptEvalThread;
-        private Timer _scriptEvalTimer;
-        private TaskCompletionSource _taskCompletionSource;
+        public string? ScriptName { get; private set; }
+        public string? ScriptText { get; private set; }
+        public uint ScriptTimeout { get; private set; } = 100; // minimum unset
+        private dynamic? _binding;
+        private Thread? _scriptEvalThread;
+        private Timer? _scriptEvalTimer;
+        private TaskCompletionSource? _taskCompletionSource;
 
         public PythonScriptEngine() { }
 
@@ -94,23 +94,23 @@ namespace Mue.Scripting
                     throw ex;
                 }
 
-                _taskCompletionSource.TrySetResult();
+                _taskCompletionSource?.TrySetResult();
             }
             catch (Exception e)
             {
-                _taskCompletionSource.TrySetException(e);
+                _taskCompletionSource?.TrySetException(e);
             }
             finally
             {
-                _scriptEvalTimer.Dispose();
+                _scriptEvalTimer?.Dispose();
             }
         }
 
-        private void TimeoutCallback(object state)
+        private void TimeoutCallback(object? state)
         {
-            _scriptEvalTimer.Dispose();
-            _scriptEvalThread.Interrupt();
-            _taskCompletionSource.TrySetCanceled();
+            _scriptEvalTimer?.Dispose();
+            _scriptEvalThread?.Interrupt();
+            _taskCompletionSource?.TrySetCanceled();
         }
 
         private static dynamic BuildBinderClassInstance(ScriptEngine engine, dynamic binding)

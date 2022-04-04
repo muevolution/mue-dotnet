@@ -9,7 +9,7 @@ namespace Mue.Backend.PubSub
     class RedisPubSub : IBackendPubSub
     {
         private readonly RedisBackend _backend;
-        private ISubscriber _pubsub;
+        private ISubscriber? _pubsub;
 
         public RedisPubSub(RedisBackend backend)
         {
@@ -17,7 +17,7 @@ namespace Mue.Backend.PubSub
         }
 
         // TODO: This should probably be better (but is fine for most use as we're not clustered by default)
-        private ISubscriber Subscriber { get { return _pubsub ?? (_pubsub = _backend.Connection.GetSubscriber()); } }
+        private ISubscriber Subscriber { get { return _pubsub ?? (_pubsub = _backend.Connection?.GetSubscriber()) ?? throw new Exception("Connection was not open!"); } }
 
         public async Task<ISubscriptionToken> Subscribe(string topic, Action<string, string> callback)
         {
@@ -45,12 +45,24 @@ namespace Mue.Backend.PubSub
 
         public async Task<uint> GetSubscribeCount(string topic)
         {
-            return (uint)(await _backend.GetServer().SubscriptionSubscriberCountAsync(topic));
+            var server = _backend.GetServer();
+            if (server == null)
+            {
+                throw new NullReferenceException("Server was null.");
+            }
+
+            return (uint)(await server.SubscriptionSubscriberCountAsync(topic));
         }
 
         public async Task<IEnumerable<string>> GetTopicsWildcard(string topic)
         {
-            return (await _backend.GetServer().SubscriptionChannelsAsync(topic)).Select(s => (string)s);
+            var server = _backend.GetServer();
+            if (server == null)
+            {
+                throw new NullReferenceException("Server was null.");
+            }
+
+            return (await server.SubscriptionChannelsAsync(topic)).Select(s => (string)s);
         }
     }
 
@@ -58,9 +70,9 @@ namespace Mue.Backend.PubSub
     {
         private readonly ISubscriber _pubsub;
         private readonly string _topic;
-        private readonly Action<ChannelMessage> _syncCallback;
-        private readonly Func<ChannelMessage, Task> _asyncCallback;
-        private ChannelMessageQueue _mq;
+        private readonly Action<ChannelMessage>? _syncCallback;
+        private readonly Func<ChannelMessage, Task>? _asyncCallback;
+        private ChannelMessageQueue? _mq;
 
         public RedisSubscriptionToken(ISubscriber pubsub, string topic, Action<string, string> callback)
         {

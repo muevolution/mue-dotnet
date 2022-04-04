@@ -301,11 +301,7 @@ public class GameObjectTests
         _sys.StorageManager.Verify(v => v.UpdateMeta(objId, newMeta));
         _sys.StorageManager.Verify(v => v.UpdatePlayerNameIndex(objId, "Test name", "Newname"));
 
-        _sys.World.Verify(v => v.FireObjectEvent<IObjectUpdateResult>(mock.Id, "rename", new RenameResult
-        {
-            OldName = "Test name",
-            NewName = "Newname"
-        }, false));
+        _sys.World.Verify(v => v.FireObjectEvent<IObjectUpdateResult>(mock.Id, "rename", new RenameResult("Test name", "Newname"), false));
     }
 
     [Theory]
@@ -335,27 +331,13 @@ public class GameObjectTests
 
         var mock = CreateMock();
 
-        var expectedMoveResult = new MoveResult
-        {
-            OldLocation = oldLocationId,
-            NewLocation = newLocationId
-        };
-
-        var expectedObjectUpdate = new ObjectUpdate
-        {
-            Id = mock.Id,
-            EventName = "move",
-            Meta = expectedMoveResult
-        };
+        var expectedMoveResult = new MoveResult(oldLocationId, newLocationId);
+        var expectedObjectUpdate = new ObjectUpdate(mock.Id, "move", expectedMoveResult);
 
         var actual = mock.MoveFinish(newLocationId, oldLocationId);
         Assert.Equal(expectedMoveResult, actual);
 
-        _sys.World.Verify(v => v.FireObjectEvent<IObjectUpdateResult>(mock.Id, "move", new MoveResult
-        {
-            OldLocation = oldLocationId,
-            NewLocation = newLocationId
-        }, false));
+        _sys.World.Verify(v => v.FireObjectEvent<IObjectUpdateResult>(mock.Id, "move", new MoveResult(oldLocationId, newLocationId), false));
     }
 
     // Destroy

@@ -25,7 +25,7 @@ namespace Mue.Server.Core.System.CommandBuiltins
         {
             var isChange = false;
             var isAdding = true;
-            string targetName = null;
+            string? targetName = null;
 
             if (command.Params != null)
             {
@@ -33,7 +33,7 @@ namespace Mue.Server.Core.System.CommandBuiltins
             }
             else if (!String.IsNullOrWhiteSpace(command.Args))
             {
-                var subcmd = command.Args.Split(" ", 1).FirstOrDefault();
+                var subcmd = command.Args.Split(" ", 1).FirstOrDefault() ?? String.Empty;
                 if (subcmd.StartsWith("#"))
                 {
                     await (subcmd switch
@@ -86,10 +86,7 @@ namespace Mue.Server.Core.System.CommandBuiltins
                 var msg = "Players you are watching for: " + String.Join(", ", playerNames);
                 await _world.PublishMessage(msg, player, new Dictionary<string, string>(WatchFor_DefaultMeta) {
                     {CommunicationsMessage.META_RENDERER, CommunicationsMessage.META_RENDERER_LIST},
-                    {CommunicationsMessage.META_LIST_CONTENT, Json.Serialize(new CommunicationsMessage_List {
-                        Message = "Players you are watching for:",
-                        List = playerNames
-                    })},
+                    {CommunicationsMessage.META_LIST_CONTENT, Json.Serialize(new CommunicationsMessage_List(playerNames, "Players you are watching for:"))},
                     {"watchfor_list", Json.Serialize(interestedPlayers.Select(s => new {Id = s.Id, Name = s.Name}))}
                 });
             }
@@ -164,10 +161,7 @@ namespace Mue.Server.Core.System.CommandBuiltins
                 var msg = "The players you are watching for are online: " + String.Join(", ", playerNames);
                 await _world.PublishMessage(msg, player, new Dictionary<string, string>(WatchFor_DefaultMeta) {
                     {CommunicationsMessage.META_RENDERER, CommunicationsMessage.META_RENDERER_LIST},
-                    {CommunicationsMessage.META_LIST_CONTENT, Json.Serialize(new CommunicationsMessage_List {
-                        Message = "The players you are watching for are online:",
-                        List = playerNames
-                    })},
+                    {CommunicationsMessage.META_LIST_CONTENT, Json.Serialize(new CommunicationsMessage_List(playerNames, "The players you are watching for are online:"))},
                     {"watchfor_list", Json.Serialize(interestedOnlinePlayers.Select(s => new {Id = s.Id, Name = s.Name}))}
                 });
             }
@@ -229,7 +223,7 @@ namespace Mue.Server.Core.System.CommandBuiltins
                 // Hide if they're in the same room to prevent redundant messages
                 return;
             }
-            
+
             // TODO: We should send an unrendered client message if their state isn't changing (like a 2nd connection)
 
             await _world.PublishMessage(

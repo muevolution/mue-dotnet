@@ -11,7 +11,7 @@ namespace Mue.Server.Core.System.CommandBuiltins
         [BuiltinCommand("$target")]
         public async Task SetTarget(GamePlayer player, LocalCommand command)
         {
-            string targetAction = null, targetLocation = null;
+            string? targetAction = null, targetLocation = null;
 
             if (!String.IsNullOrEmpty(command.Args))
             {

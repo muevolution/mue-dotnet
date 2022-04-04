@@ -9,9 +9,9 @@ namespace Mue.Scripting
 
     public class MueScriptException : Exception
     {
-        public MueScriptException(string message, Exception innerException) : base(message, innerException) { }
+        public MueScriptException(string message, Exception? innerException) : base(message, innerException) { }
 
-        public string[] ScriptStackTrace { get; set; }
+        public string[]? ScriptStackTrace { get; set; }
     }
 
     public class MueScriptEntryMissing : MueScriptException

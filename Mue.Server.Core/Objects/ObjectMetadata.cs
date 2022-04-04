@@ -7,10 +7,10 @@ namespace Mue.Server.Core.Objects
 {
     public record ObjectMetadata
     {
-        public string Name { get; init; }
-        public ObjectId Creator { get; init; }
-        public ObjectId Parent { get; init; }
-        public ObjectId Location { get; init; }
+        public string Name { get; init; } = null!;
+        public ObjectId Creator { get; init; } = null!;
+        public ObjectId Parent { get; init; } = null!;
+        public ObjectId? Location { get; init; } = null!;
 
         public IReadOnlyDictionary<string, string> ToDictionary()
         {

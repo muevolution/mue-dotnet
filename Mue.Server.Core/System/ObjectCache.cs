@@ -25,7 +25,7 @@ namespace Mue.Server.Core.System
             _cache = precache;
         }
 
-        public IGameObject GetObject(ObjectId id)
+        public IGameObject? GetObject(ObjectId id)
         {
             if (!HasObjectId(id))
             {
@@ -35,7 +35,7 @@ namespace Mue.Server.Core.System
             return _cache[id];
         }
 
-        public T GetObject<T>(ObjectId id) where T : class, IGameObject
+        public T? GetObject<T>(ObjectId id) where T : class, IGameObject
         {
             if (!HasObjectId(id))
             {

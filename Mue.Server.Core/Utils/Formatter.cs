@@ -7,11 +7,10 @@ using Mue.Server.Core.System;
 
 namespace Mue.Server.Core.Utils
 {
-    public record FormattedMessage
+    public record FormattedMessage(string Message)
     {
-        public string Message { get; init; }
-        public IReadOnlyDictionary<string, string> Substitutions { get; init; }
-        public string Format { get; init; }
+        public IReadOnlyDictionary<string, string>? Substitutions { get; init; }
+        public string? Format { get; init; }
     }
 
     public interface IWorldFormatter
@@ -49,7 +48,7 @@ namespace Mue.Server.Core.Utils
                     var objTask = _world.GetObjectById(objId);
                     Task.WaitAll(objTask);
                     var obj = objTask.Result;
-                    return obj.Name;
+                    return obj?.Name;
                 });
             }
         }
@@ -60,10 +59,7 @@ namespace Mue.Server.Core.Utils
             var tpl = _hb.Compile(message);
             var formatted = tpl(args);
 
-            return new FormattedMessage
-            {
-                Message = formatted,
-            };
+            return new FormattedMessage(formatted);
         }
     }
 }

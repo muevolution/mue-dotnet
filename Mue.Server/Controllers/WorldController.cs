@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Mue.Server.Core.ClientServer;
 using Mue.Server.Core.System;
+using Mue.Server.Core.Utils;
 
 namespace Mue.Server.Controllers
 {
@@ -27,7 +28,7 @@ namespace Mue.Server.Controllers
         {
             var playerIds = await _world.GetConnectedPlayerIds();
             var playerObjs = await _world.GetObjectsById(playerIds);
-            var playerNames = String.Join(',', playerObjs.Select(s => s.Name));
+            var playerNames = String.Join(',', playerObjs.WhereNotNull().Select(s => s.Name));
 
             return "Hello world!\n\nThe following players are connected: " + playerNames;
         }

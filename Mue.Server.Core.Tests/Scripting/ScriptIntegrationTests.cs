@@ -14,11 +14,8 @@ public class ScriptIntegrationTests
     {
         var callback = new Mock<Action<object>>();
 
-        var executor = new MueEngineExecutor
+        var executor = new MueEngineExecutor("hello world", "p:1234", "s:4567")
         {
-            CommandString = "hello world",
-            RunBy = "p:1234",
-            ThisScript = "s:4567",
             Callback = callback.Object,
         };
         var si = ScriptIntegration.Build(_sys.World.Object, executor, true);
@@ -26,6 +23,20 @@ public class ScriptIntegrationTests
         var eng = new PythonScriptEngine();
 
         return (eng, si, callback);
+    }
+
+    [Fact]
+    public async Task ScriptIntegratorBuildsCorrectly()
+    {
+        var (eng, si, callback) = PrepareTest();
+
+        await eng.SpawnAndRun("ScriptIntegratorBuildsCorrectly", @"
+def __mue_entry__(mue):
+    v = mue.script.this_script == ""s:4567""
+    mue.callback(v)
+", 5000, si);
+
+        callback.Verify(v => v(true));
     }
 
     [Fact]

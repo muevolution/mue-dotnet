@@ -8,7 +8,7 @@ namespace Mue.Server.Core.Objects
 {
     public class GameItem : Container
     {
-        public static Task<GameItem> Create(IWorld world, string name, ObjectId creator, ObjectId location = null)
+        public static Task<GameItem> Create(IWorld world, string name, ObjectId creator, ObjectId? location = null)
         {
             if (name.StartsWith("$"))
             {
@@ -31,6 +31,6 @@ namespace Mue.Server.Core.Objects
             return world.ObjectCache.StandardImitate<GameItem>(id, (meta) => Task.FromResult(new GameItem(world, meta, id)));
         }
 
-        protected GameItem(IWorld world, ObjectMetadata meta, ObjectId id = null) : base(world, GameObjectType.Item, meta, id) { }
+        protected GameItem(IWorld world, ObjectMetadata meta, ObjectId? id = null) : base(world, GameObjectType.Item, meta, id) { }
     }
 }

@@ -58,7 +58,7 @@ namespace Mue.Server.Core.System
             return player;
         }
 
-        public async Task<GamePlayer> RegisterPlayer(string username, string password, ObjectId creator = null, ObjectId parent = null, ObjectId location = null)
+        public async Task<GamePlayer> RegisterPlayer(string username, string password, ObjectId? creator = null, ObjectId? parent = null, ObjectId? location = null)
         {
             // TODO: Check server settings for player registration origin
 
@@ -112,16 +112,16 @@ namespace Mue.Server.Core.System
                 var hasSpace = line.IndexOf(" ");
                 if (hasSpace > -1)
                 {
-                    cmd = new LocalCommand { Command = line.Substring(0, hasSpace), Args = line.Substring(hasSpace + 1) };
+                    cmd = new LocalCommand(line.Substring(0, hasSpace)) { Args = line.Substring(hasSpace + 1) };
                 }
                 else
                 {
-                    cmd = new LocalCommand { Command = line };
+                    cmd = new LocalCommand(line);
                 }
             }
             else
             {
-                cmd = new LocalCommand { Command = request.Command, Params = request.Params };
+                cmd = new LocalCommand(request.Command) { Params = request.Params };
             }
 
             if (String.IsNullOrEmpty(cmd.Command))
@@ -231,10 +231,10 @@ namespace Mue.Server.Core.System
                 {
                     _logger.LogError(e, "User script execution threw a scripting error");
 
-                    var stack = e.ScriptStackTrace != null ? String.Join("\n", e.ScriptStackTrace) : e.InnerException.Message;
-                    var msg = new InteriorMessage
+                    var stack = e.ScriptStackTrace != null ? String.Join("\n", e.ScriptStackTrace) : e.InnerException?.Message;
+                    var msg = new InteriorMessage($"Error executing script [{scriptTarget.Id}]:\n{stack}")
                     {
-                        Message = $"Error executing script [{scriptTarget.Id}]:\n{stack}",
+                        Source = player.Id.Id,
                         Meta = new Dictionary<string, string> {
                             {"Exception", e.ToString()}
                         }

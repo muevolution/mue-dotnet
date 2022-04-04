@@ -24,7 +24,7 @@ public class PropsTests
         Assert.Null(actual.ObjectIdValue);
         Assert.True(actual.NumberValue.HasValue);
         Assert.Equal(expected, actual.NumberValue.Value);
-        Assert.Null(actual.ListValue);
+        Assert.Empty(actual.ListValue);
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public class PropsTests
         Assert.Equal(expected, actual.StringValue);
         Assert.Null(actual.ObjectIdValue);
         Assert.False(actual.NumberValue.HasValue);
-        Assert.Null(actual.ListValue);
+        Assert.Empty(actual.ListValue);
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class PropsTests
         Assert.Null(actual.StringValue);
         Assert.Equal(expected, actual.ObjectIdValue);
         Assert.False(actual.NumberValue.HasValue);
-        Assert.Null(actual.ListValue);
+        Assert.Empty(actual.ListValue);
     }
 
     [Fact]
@@ -62,7 +62,8 @@ public class PropsTests
         Assert.Equal(PropValueType.List, actual.ValueType);
         Assert.Null(actual.StringValue);
         Assert.Null(actual.ObjectIdValue);
-        Assert.False(actual.NumberValue.HasValue);
+        Assert.Null(actual.NumberValue);
+        Assert.NotEmpty(actual.ListValue);
         Assert.Equal(3, actual.ListValue.Count());
         Assert.Contains(actual.ListValue, p => p.StringValue == "a");
         Assert.Contains(actual.ListValue, p => p.NumberValue == 2);

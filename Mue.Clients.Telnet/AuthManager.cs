@@ -8,9 +8,9 @@ namespace Mue.Clients.Telnet
 {
     public class AuthManager
     {
-        private AuthRequest _cachedState;
+        private AuthRequest? _cachedState;
 
-        public HubClientSession CurrentSession { get; set; }
+        public HubClientSession? CurrentSession { get; set; }
         public bool IsAuthenticated { get; private set; }
         public bool ShouldReauth => IsAuthenticated && CurrentSession != null;
 
@@ -25,14 +25,15 @@ namespace Mue.Clients.Telnet
             this.IsAuthenticated = false;
         }
 
-        public async Task<bool> PerformAuthentication(StreamWriter writer, AuthRequest authRequest = null)
+        public async Task<bool> PerformAuthentication(StreamWriter writer, AuthRequest? authRequest = null)
         {
-            if (CurrentSession == null)
+            if (CurrentSession?.Client == null)
             {
                 throw new InvalidOperationException();
             }
 
-            var res = await CurrentSession.Client.Auth(authRequest);
+            var req = authRequest ?? _cachedState ?? throw new ArgumentNullException("authRequest");
+            var res = await CurrentSession.Client.Auth(req);
             if (res.Fatal)
             {
                 throw new Exception("Command threw fatal: " + res.Message);

@@ -31,16 +31,17 @@ namespace Mue.Server.Core.Models
             ObjectIdValue = val;
         }
 
-        public PropValue(string val)
+        public PropValue(string? val)
         {
             if (val == null)
             {
                 ValueType = PropValueType.Unset;
-                return;
             }
-
-            ValueType = PropValueType.String;
-            StringValue = val;
+            else
+            {
+                ValueType = PropValueType.String;
+                StringValue = val;
+            }
         }
 
         public PropValue(int val)
@@ -55,21 +56,27 @@ namespace Mue.Server.Core.Models
             ListValue = val;
         }
 
+        private PropValue(JArray jarr)
+        {
+            ValueType = PropValueType.List;
+            ListValue = jarr.Select(s => FlatPropValue.FromJson(s)).WhereNotNull().ToList();
+        }
+
         public PropValueType ValueType { get; private init; }
-        public ObjectId ObjectIdValue { get; private init; }
-        public string StringValue { get; private init; }
+        public ObjectId? ObjectIdValue { get; private init; }
+        public string? StringValue { get; private init; }
         public int? NumberValue { get; private init; }
-        public IEnumerable<FlatPropValue> ListValue { get; private init; }
+        public IEnumerable<FlatPropValue> ListValue { get; private init; } = Enumerable.Empty<FlatPropValue>();
 
         public bool IsNull { get { return ValueType == PropValueType.Unset; } }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (this == obj)
             {
                 return true;
             }
-            else if (!this.GetType().Equals(obj.GetType()))
+            else if (obj == null || !this.GetType().Equals(obj.GetType()))
             {
                 return false;
             }
@@ -96,34 +103,34 @@ namespace Mue.Server.Core.Models
 
         public override int GetHashCode()
         {
-            return this.ToDynamic().GetHashCode();
+            return this.ToDynamic()?.GetHashCode();
         }
 
-        public override string ToString()
+        public override string? ToString()
         {
             return ValueType switch
             {
-                PropValueType.ObjectId => ObjectIdValue.Id,
+                PropValueType.ObjectId => ObjectIdValue?.Id,
                 PropValueType.String => StringValue,
-                PropValueType.Number => NumberValue.Value.ToString(),
+                PropValueType.Number => NumberValue?.ToString(),
                 PropValueType.List => "[" + String.Join(",", ListValue.Select(s => s.ToString())) + "]",
                 _ => "unknown",
             };
         }
 
-        public dynamic ToDynamic(bool forJson = false)
+        public dynamic? ToDynamic(bool forJson = false)
         {
             return ValueType switch
             {
                 PropValueType.ObjectId => forJson ? $"{ObjectIdPrefix}{ObjectIdValue}" : ObjectIdValue,
                 PropValueType.String => StringValue,
-                PropValueType.Number => NumberValue.Value,
-                PropValueType.List => ListValue.Select(s => s.ToDynamic(forJson)).ToArray(),
+                PropValueType.Number => NumberValue,
+                PropValueType.List => ListValue?.Select(s => s.ToDynamic(forJson)).ToArray(),
                 _ => null,
             };
         }
 
-        public string ToJsonString()
+        public string? ToJsonString()
         {
             if (IsNull)
             {
@@ -151,16 +158,16 @@ namespace Mue.Server.Core.Models
                 JTokenType.None or JTokenType.Null => new PropValue(),
                 JTokenType.String => PropValue.FromJsonStringDeterminer(jobj),
                 JTokenType.Integer => new PropValue((int)jobj),
-                JTokenType.Array => new PropValue(((JArray)jobj).Select(s => FlatPropValue.FromJson(s)).Where(w => w != null).ToArray()),
+                JTokenType.Array => new PropValue((JArray)jobj),
                 _ => throw new Exception($"Failed to decode PropValue from JSON (unsupported root type {jobj.Type})"),
             };
         }
 
         public static PropValue FromJsonStringDeterminer(JToken jobj)
         {
-            var str = (string)jobj;
+            var str = (string?)jobj;
 
-            if (str.StartsWith(ObjectIdPrefix))
+            if (str?.StartsWith(ObjectIdPrefix) ?? false)
             {
                 var objStr = str.Substring(ObjectIdPrefix.Length);
                 try
@@ -183,6 +190,7 @@ namespace Mue.Server.Core.Models
 
     public enum FlatPropValueType
     {
+        Unset,
         ObjectId,
         String,
         Number,
@@ -190,7 +198,10 @@ namespace Mue.Server.Core.Models
 
     public class FlatPropValue
     {
-        public FlatPropValue() { }
+        public FlatPropValue()
+        {
+            ValueType = FlatPropValueType.Unset;
+        }
 
         public FlatPropValue(ObjectId val)
         {
@@ -198,10 +209,13 @@ namespace Mue.Server.Core.Models
             ObjectIdValue = val;
         }
 
-        public FlatPropValue(string val)
+        public FlatPropValue(string? val)
         {
-            ValueType = FlatPropValueType.String;
-            StringValue = val;
+            if (val != null)
+            {
+                ValueType = FlatPropValueType.String;
+                StringValue = val;
+            }
         }
 
         public FlatPropValue(int val)
@@ -211,17 +225,17 @@ namespace Mue.Server.Core.Models
         }
 
         public FlatPropValueType ValueType { get; private init; }
-        public ObjectId ObjectIdValue { get; private init; }
-        public string StringValue { get; private init; }
+        public ObjectId? ObjectIdValue { get; private init; }
+        public string? StringValue { get; private init; }
         public int? NumberValue { get; private init; }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (this == obj)
             {
                 return true;
             }
-            else if (!this.GetType().Equals(obj.GetType()))
+            else if (obj == null || !this.GetType().Equals(obj.GetType()))
             {
                 return false;
             }
@@ -237,32 +251,32 @@ namespace Mue.Server.Core.Models
 
         public override int GetHashCode()
         {
-            return this.ToDynamic().GetHashCode();
+            return this.ToDynamic()?.GetHashCode();
         }
 
-        public override string ToString()
+        public override string? ToString()
         {
             return ValueType switch
             {
-                FlatPropValueType.ObjectId => ObjectIdValue.Id,
+                FlatPropValueType.ObjectId => ObjectIdValue?.Id,
                 FlatPropValueType.String => StringValue,
-                FlatPropValueType.Number => NumberValue.Value.ToString(),
+                FlatPropValueType.Number => NumberValue?.ToString(),
                 _ => "unknown",
             };
         }
 
-        internal dynamic ToDynamic(bool forJson = false)
+        internal dynamic? ToDynamic(bool forJson = false)
         {
             return ValueType switch
             {
                 FlatPropValueType.ObjectId => forJson ? $"{PropValue.ObjectIdPrefix}{ObjectIdValue}" : ObjectIdValue,
                 FlatPropValueType.String => StringValue,
-                FlatPropValueType.Number => NumberValue.Value,
+                FlatPropValueType.Number => NumberValue,
                 _ => null,
             };
         }
 
-        internal static FlatPropValue FromJson(JToken jobj)
+        internal static FlatPropValue? FromJson(JToken jobj)
         {
             return jobj.Type switch
             {
@@ -273,11 +287,11 @@ namespace Mue.Server.Core.Models
             };
         }
 
-        private static FlatPropValue FromJsonStringDeterminer(JToken jobj)
+        private static FlatPropValue? FromJsonStringDeterminer(JToken jobj)
         {
-            var str = (string)jobj;
+            var str = (string?)jobj;
 
-            if (str.StartsWith(PropValue.ObjectIdPrefix))
+            if (str?.StartsWith(PropValue.ObjectIdPrefix) ?? false)
             {
                 try
                 {

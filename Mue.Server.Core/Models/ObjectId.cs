@@ -17,7 +17,7 @@ namespace Mue.Server.Core.Models
             IsAssigned = false;
         }
 
-        public ObjectId(string anyId, GameObjectType? checkType = null)
+        public ObjectId(string? anyId = null, GameObjectType? checkType = null)
         {
             if (String.IsNullOrWhiteSpace(anyId))
             {
@@ -68,11 +68,11 @@ namespace Mue.Server.Core.Models
         }
 
         public bool IsAssigned { get; init; }
-        public string Id { get { return ShortId != null && ObjectType != GameObjectType.Invalid ? $"{ObjectType.ToShortString()}:{ShortId}" : null; } }
+        public string Id { get { return ShortId != null && ObjectType != GameObjectType.Invalid ? $"{ObjectType.ToShortString()}:{ShortId}" : null!; } }
         public GameObjectType ObjectType { get; init; } = GameObjectType.Invalid;
-        public string ShortId { get; init; }
+        public string? ShortId { get; init; }
 
-        public override string ToString()
+        public override string? ToString()
         {
             return Id;
         }
@@ -85,11 +85,10 @@ namespace Mue.Server.Core.Models
 
     class ObjectIdConverter : JsonConverter
     {
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
         {
             var objId = value as ObjectId;
-
-            if (!objId.IsAssigned)
+            if (objId == null || !objId.IsAssigned)
             {
                 writer.WriteNull();
             }
@@ -99,9 +98,9 @@ namespace Mue.Server.Core.Models
             }
         }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
         {
-            var id = (string)reader.Value;
+            var id = (string?)reader.Value;
             if (id == null)
             {
                 return ObjectId.Empty;

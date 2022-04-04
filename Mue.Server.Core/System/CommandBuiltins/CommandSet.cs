@@ -17,7 +17,7 @@ namespace Mue.Server.Core.System.CommandBuiltins
         {
             // TODO: Use `$set@target key=value` syntax instead of `$set target=key:value`
 
-            string target = null, key = null, value = null;
+            string? target = null, key = null, value = null;
 
             if (!String.IsNullOrEmpty(command.Args))
             {
@@ -60,7 +60,7 @@ namespace Mue.Server.Core.System.CommandBuiltins
         {
             // TODO: Use `$unset@target key` syntax instead of `$unset target=key`
 
-            string target = null, key = null;
+            string? target = null, key = null;
 
             if (!String.IsNullOrEmpty(command.Args))
             {

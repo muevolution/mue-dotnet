@@ -18,8 +18,15 @@ namespace Mue.Server.Hubs
 
     public class MueConnection
     {
-        public string ConnectionId { get; set; }
-        public IClientToServer Server { get; set; }
-        public IServerToClient Client { get; set; }
+        public MueConnection(string connectionId, IClientToServer server, IServerToClient client)
+        {
+            this.ConnectionId = connectionId;
+            this.Server = server;
+            this.Client = client;
+        }
+
+        public string ConnectionId { get; private init; }
+        public IClientToServer Server { get; private init; }
+        public IServerToClient Client { get; private init; }
     }
 }

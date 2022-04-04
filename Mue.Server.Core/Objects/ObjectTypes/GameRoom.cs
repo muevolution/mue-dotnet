@@ -7,7 +7,7 @@ namespace Mue.Server.Core.Objects
 {
     public class GameRoom : Container
     {
-        public static Task<GameRoom> Create(IWorld world, string name, ObjectId creator, ObjectId parent, ObjectId location = null)
+        public static Task<GameRoom> Create(IWorld world, string name, ObjectId creator, ObjectId parent, ObjectId? location = null)
         {
             var p = new GameRoom(world, new ObjectMetadata
             {
@@ -41,12 +41,12 @@ namespace Mue.Server.Core.Objects
             return world.ObjectCache.StandardImitate<GameRoom>(id, (meta) => Task.FromResult(new GameRoom(world, meta, id)));
         }
 
-        protected GameRoom(IWorld world, ObjectMetadata meta, ObjectId id = null) : base(world, GameObjectType.Room, meta, id)
+        protected GameRoom(IWorld world, ObjectMetadata meta, ObjectId? id = null) : base(world, GameObjectType.Room, meta, id)
         {
             _useDeepSearch = true;
         }
 
-        public override async Task<ObjectId> Find(string term, GameObjectType? type = null)
+        public override async Task<ObjectId?> Find(string term, GameObjectType? type = null)
         {
             // TODO: This method needs optimization/caching
 

@@ -11,7 +11,7 @@ namespace Mue.Server.Hosts
     {
         private readonly IWorld _world;
         private readonly RedisBackend _backend;
-        private Timer _announceTimer;
+        private Timer? _announceTimer;
 
         public HostedWorld(IWorld world, RedisBackend backend)
         {
@@ -29,14 +29,17 @@ namespace Mue.Server.Hosts
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-            await _announceTimer.DisposeAsync();
+            if (_announceTimer != null)
+            {
+                await _announceTimer.DisposeAsync();
+            }
 
             await _world.Shutdown();
             await _backend.Disconnect();
             await _backend.DisposeAsync();
         }
 
-        private void TimeAnnouncer(object state)
+        private void TimeAnnouncer(object? state)
         {
             _ = DoTimeAnnounce();
         }

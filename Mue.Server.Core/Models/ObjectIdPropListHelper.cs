@@ -9,9 +9,9 @@ namespace Mue.Server.Core.Models
 {
     public class ObjectIdPropListHelper
     {
-        private IGameObject _obj;
-        private IWorld _world;
-        private ObjectId _objId;
+        private IGameObject? _obj;
+        private IWorld? _world;
+        private ObjectId? _objId;
         private string _propKey;
 
         public ObjectIdPropListHelper(IGameObject obj, string propKey)
@@ -92,9 +92,13 @@ namespace Mue.Server.Core.Models
             {
                 return _obj.GetProp(_propKey);
             }
-            else
+            else if (_world != null && _objId != null)
             {
                 return _world.StorageManager.GetProp(_objId, _propKey);
+            }
+            else
+            {
+                throw new InvalidOperationException();
             }
         }
 
@@ -104,9 +108,13 @@ namespace Mue.Server.Core.Models
             {
                 return _obj.SetProp(_propKey, val);
             }
-            else
+            else if (_world != null && _objId != null)
             {
                 return _world.StorageManager.SetProp(_objId, _propKey, val);
+            }
+            else
+            {
+                throw new InvalidOperationException();
             }
         }
     }

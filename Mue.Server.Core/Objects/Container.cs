@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Mue.Server.Core.Models;
 using Mue.Server.Core.System;
+using Mue.Server.Core.Utils;
 
 namespace Mue.Server.Core.Objects
 {
@@ -11,13 +12,13 @@ namespace Mue.Server.Core.Objects
     {
         protected bool _useDeepSearch { get; init; }
 
-        protected Container(IWorld world, GameObjectType objType, MD meta, ObjectId id = null) : base(world, objType, meta, id) { }
+        protected Container(IWorld world, GameObjectType objType, MD meta, ObjectId? id = null) : base(world, objType, meta, id) { }
 
         public Task<IEnumerable<ObjectId>> GetContents(GameObjectType? objType = null) => _world.StorageManager.GetContents(this.Id, objType);
 
-        public virtual Task<ObjectId> Find(string term, GameObjectType? type = null) => FindIn(term, type);
+        public virtual Task<ObjectId?> Find(string term, GameObjectType? type = null) => FindIn(term, type);
 
-        public async Task<ObjectId> FindIn(string term, GameObjectType? type = null)
+        public async Task<ObjectId?> FindIn(string term, GameObjectType? type = null)
         {
             var contentIds = await GetContents();
             if (contentIds.Count() < 1)
@@ -25,7 +26,7 @@ namespace Mue.Server.Core.Objects
                 return null;
             }
 
-            var contents = await _world.GetObjectsById(contentIds);
+            var contents = (await _world.GetObjectsById(contentIds)).WhereNotNull();
 
             if (type == GameObjectType.Action)
             {
@@ -77,8 +78,7 @@ namespace Mue.Server.Core.Objects
         private async Task<bool> SpillContents()
         {
             // TODO: This will need to reparent all the children somehow too
-
-            var newParent = this.Location;
+            var newParent = this.Location ?? this.Parent;
             var contents = (await this.GetContents()).ToList();
             if (contents.Count < 1)
             {
@@ -95,7 +95,7 @@ namespace Mue.Server.Core.Objects
 
             // Update all the objects with their new container
             var objects = await Task.WhenAll(contents.Select(s => _world.GetObjectById(s)));
-            objects.Where(w => w != null).ToList().ForEach(f => f.MoveFinish(newParent, this.Id));
+            objects.WhereNotNull().ToList().ForEach(f => f.MoveFinish(newParent, this.Id));
 
             return true;
         }
@@ -103,7 +103,7 @@ namespace Mue.Server.Core.Objects
 
     public abstract class Container : Container<ObjectMetadata>
     {
-        protected Container(IWorld world, GameObjectType objType, ObjectMetadata meta, ObjectId id = null) : base(world, objType, meta, id) { }
+        protected Container(IWorld world, GameObjectType objType, ObjectMetadata meta, ObjectId? id = null) : base(world, objType, meta, id) { }
     }
 
     public static class ContainerExtensions
@@ -113,12 +113,12 @@ namespace Mue.Server.Core.Objects
             return container.GetContents(GameObjectConsts.GetGameObjectType<T>());
         }
 
-        public static Task<ObjectId> Find<T>(this IContainer container, string term) where T : IGameObject
+        public static Task<ObjectId?> Find<T>(this IContainer container, string term) where T : IGameObject
         {
             return container.Find(term, GameObjectConsts.GetGameObjectType<T>());
         }
 
-        public static Task<ObjectId> FindIn<T>(this IContainer container, string term) where T : IGameObject
+        public static Task<ObjectId?> FindIn<T>(this IContainer container, string term) where T : IGameObject
         {
             return container.FindIn(term, GameObjectConsts.GetGameObjectType<T>());
         }

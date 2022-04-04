@@ -82,9 +82,9 @@ namespace Mue.Server.Core.Objects
     public static class GameObjectExtensions
     {
         /// <summary>Safely filter an enumerable of game objects and cast them.</summary>
-        public static IEnumerable<T> WhereObjectType<T>(this IEnumerable<IGameObject> items) where T : IGameObject
+        public static IEnumerable<T> WhereObjectType<T>(this IEnumerable<IGameObject?> items) where T : IGameObject
         {
-            return items.Where(w => w.ObjectType == GameObjectConsts.GetGameObjectType<T>()).Cast<T>();
+            return items.Where(w => w?.ObjectType == GameObjectConsts.GetGameObjectType<T>()).Cast<T>();
         }
     }
 

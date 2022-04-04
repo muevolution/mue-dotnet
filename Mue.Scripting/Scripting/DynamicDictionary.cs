@@ -7,21 +7,21 @@ namespace Mue.Scripting
     public class DynamicDictionary : DynamicObject
     {
         // The inner dictionary.
-        private Dictionary<string, object> _dictionary;
+        private Dictionary<string, object?> _dictionary;
 
         public DynamicDictionary()
         {
-            _dictionary = new Dictionary<string, object>();
+            _dictionary = new Dictionary<string, object?>();
         }
 
-        public DynamicDictionary(IReadOnlyDictionary<string, object> root)
+        public DynamicDictionary(IReadOnlyDictionary<string, object?> root)
         {
-            _dictionary = new Dictionary<string, object>(root);
+            _dictionary = new Dictionary<string, object?>(root);
         }
 
         public static DynamicDictionary From<T1, T2>(IReadOnlyDictionary<T1, T2> root)
         {
-            return new DynamicDictionary(root.ToDictionary(k => k.Key.ToString(), v => (object)v.Value));
+            return new DynamicDictionary(root.ToDictionary(k => k.Key?.ToString()!, v => (object?)v.Value));
         }
 
         // This property returns the number of elements
@@ -36,7 +36,7 @@ namespace Mue.Scripting
 
         // If you try to get a value of a property
         // not defined in the class, this method is called.
-        public override bool TryGetMember(GetMemberBinder binder, out object result)
+        public override bool TryGetMember(GetMemberBinder binder, out object? result)
         {
             // Converting the property name to lowercase
             // so that property names become case-insensitive.
@@ -50,7 +50,7 @@ namespace Mue.Scripting
 
         // If you try to set a value of a property that is
         // not defined in the class, this method is called.
-        public override bool TrySetMember(SetMemberBinder binder, object value)
+        public override bool TrySetMember(SetMemberBinder binder, object? value)
         {
             if (Locked)
             {
@@ -66,11 +66,12 @@ namespace Mue.Scripting
             return true;
         }
 
-        public dynamic Get(string key)
+        public dynamic? Get(string key)
         {
-            if (_dictionary.ContainsKey(key.ToLower()))
+            var lvk = key.ToLower();
+            if (_dictionary.ContainsKey(lvk))
             {
-                return _dictionary[key.ToLower()];
+                return _dictionary[lvk];
             }
             return null;
         }
@@ -82,13 +83,14 @@ namespace Mue.Scripting
                 return;
             }
 
-            if (_dictionary.ContainsKey(key.ToLower()))
+            var lvk = key.ToLower();
+            if (_dictionary.ContainsKey(lvk))
             {
-                _dictionary[key.ToLower()] = value;
+                _dictionary[lvk] = value;
             }
             else
             {
-                _dictionary.Add(key.ToLower(), value);
+                _dictionary.Add(lvk, value);
             }
         }
 

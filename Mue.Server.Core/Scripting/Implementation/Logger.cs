@@ -25,7 +25,7 @@ namespace Mue.Server.Core.Scripting.Implementation
         {
             var target = await _world.GetObjectById<GamePlayer>(new ObjectId(_executor.RunBy));
 
-            string json = null;
+            string? json = null;
             if (parms != null)
             {
                 json = Json.Serialize(parms);

@@ -10,7 +10,7 @@ namespace Mue.Clients.ClientServer
     {
         private readonly string _url;
         private readonly IServerCommands _commandHandler;
-        private HubConnection _connection;
+        private HubConnection? _connection;
 
         public HubClientSession(string url, IServerCommands commandHandler)
         {
@@ -18,7 +18,7 @@ namespace Mue.Clients.ClientServer
             _commandHandler = commandHandler;
         }
 
-        public HubClient Client { get; private set; }
+        public HubClient? Client { get; private set; }
         public bool IsConnected { get { return _connection != null && _connection.State != HubConnectionState.Disconnected; } }
 
         public async Task Open()
@@ -64,7 +64,7 @@ namespace Mue.Clients.ClientServer
             Console.WriteLine("Hub error: " + e.ToString());
         }
 
-        private Task OnHubClosed(Exception e)
+        private Task OnHubClosed(Exception? e)
         {
             // TODO: Handle hub closure
             Console.WriteLine("Hub closed! " + e?.Message);

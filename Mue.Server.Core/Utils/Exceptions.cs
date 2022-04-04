@@ -6,11 +6,11 @@ namespace Mue.Server.Core.Utils
 {
     public abstract class GameException : Exception
     {
-        protected dynamic _metadata;
+        protected dynamic? _metadata;
 
         public GameException() : base() { }
 
-        public GameException(string message, dynamic metadata = null) : base(message)
+        public GameException(string message, dynamic? metadata = null) : base(message)
         {
             _metadata = metadata;
         }
@@ -57,6 +57,11 @@ namespace Mue.Server.Core.Utils
         public GameObjectDestroyedException(ObjectId objectId) : base(objectId, "has been destroyed") { }
     }
 
+    public class InvalidGameObjectStateException : GameObjectException
+    {
+        public InvalidGameObjectStateException(ObjectId objectId) : base(objectId, "is in an invalid state") { }
+    }
+
     public class InvalidGameObjectNameException : GameObjectException
     {
         public InvalidGameObjectNameException(ObjectId objectId) : base(objectId, "does not have a proper name") { }
@@ -72,7 +77,7 @@ namespace Mue.Server.Core.Utils
         public InvalidGameObjectLocationException(ObjectId objectId) : base(objectId, "is not a valid location") { }
     }
 
-        public class InvalidGameObjectTargetException : GameObjectException
+    public class InvalidGameObjectTargetException : GameObjectException
     {
         public InvalidGameObjectTargetException(ObjectId objectId) : base(objectId, "is not a valid target") { }
     }
@@ -95,6 +100,6 @@ namespace Mue.Server.Core.Utils
 
     public class IllegalObjectIdConstructorException : GameException
     {
-        public IllegalObjectIdConstructorException(string message, string id) : base(message, new { id = id }) { }
+        public IllegalObjectIdConstructorException(string message, string? id) : base(message, new { id = id }) { }
     }
 }

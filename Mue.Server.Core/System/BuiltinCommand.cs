@@ -27,7 +27,7 @@ namespace Mue.Server.Core.System.CommandBuiltins
 
     public class BuiltinSubscriber : Attribute
     {
-        public Type UpdateType { get; init; }
+        public Type? UpdateType { get; init; }
         public List<string> SubscriptionTerms { get; init; } = new List<string>();
 
         public BuiltinSubscriber() { }
@@ -78,16 +78,16 @@ namespace Mue.Server.Core.System.CommandBuiltins
             // Cache all available commands
             _cachedCommands = allMethods
                 .Where(w => w.bica != null && w.bica.Count() > 0)
-                .SelectMany(s => s.bica.Select(attr => new CommandItem { Method = s.method, Attr = attr }))
+                .SelectMany(s => s.bica.Select(attr => new CommandItem(s.method, attr)))
                 .ToList();
 
             // Subscribe consumers to the world event stream
             _subscriptions = allMethods
                 .Where(w => w.bisub != null)
-                .Select(s => new { callee = s.method.CreateDelegate<ConsumeUpdate>(this), termFilter = s.bisub.SubscriptionTerms, typeFilter = s.bisub.UpdateType })
+                .Select(s => new { callee = s.method.CreateDelegate<ConsumeUpdate>(this), termFilter = s.bisub?.SubscriptionTerms, typeFilter = s.bisub?.UpdateType })
                 .Select(s => _world.WorldEventStream
                     .Where(w =>
-                        (s.termFilter.Count > 0 ? s.termFilter.Contains(w.EventName) : true) &&
+                        (s.termFilter?.Count > 0 ? s.termFilter.Contains(w.EventName) : true) &&
                         (s.typeFilter != null ? w.GetType().IsAssignableTo(s.typeFilter) : true)
                     ).SelectMany(v => s.callee(v)).Subscribe())
                 .ToList();
@@ -95,9 +95,9 @@ namespace Mue.Server.Core.System.CommandBuiltins
             _logger.LogDebug($"Loaded {_cachedCommands.Count} commands and {_subscriptions.Count} subscriptions");
         }
 
-        public ExecCommand FindCommand(string name)
+        public ExecCommand? FindCommand(string name)
         {
-            var targetCmd = _cachedCommands.SingleOrDefault(s => s.Attr.IsPrefix ? name.StartsWith(s.Attr.Action) : s.Attr.Action == name)?.Method;
+            var targetCmd = _cachedCommands.SingleOrDefault(s => s.Attr.IsPrefix ? name.StartsWith(s.Attr.Action) : s.Attr.Action == name).Method;
             if (targetCmd != null)
             {
                 return targetCmd.CreateDelegate<ExecCommand>(this);
@@ -112,9 +112,5 @@ namespace Mue.Server.Core.System.CommandBuiltins
         }
     }
 
-    class CommandItem
-    {
-        public BuiltinCommandAttribute Attr;
-        public MethodInfo Method;
-    }
+    record struct CommandItem(MethodInfo Method, BuiltinCommandAttribute Attr);
 }

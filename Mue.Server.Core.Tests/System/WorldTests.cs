@@ -31,7 +31,7 @@ public class WorldTests
     public WorldTests()
     {
         _sys = new SystemMock();
-        
+
         TimeUtil.InTestMode = true; // Freeze clock
     }
 
@@ -44,7 +44,7 @@ public class WorldTests
 
         await world.Init();
 
-        var publishedJson = $"{{\"instance_id\":\"{world.WorldInstanceId}\",\"event_time\":\"{TimeUtil.FrozenTimeString}\",\"event_name\":\"joined\"}}";
+        var publishedJson = $"{{\"instance_id\":\"{world.WorldInstanceId}\",\"event_name\":\"joined\",\"event_time\":\"{TimeUtil.FrozenTimeString}\"}}";
         _sys.BackendPubSub.Verify(v => v.Publish("c:isc", publishedJson));
         _sys.BackendPubSub.Verify(v => v.Subscribe("c:isc", It.IsAny<Action<string, string>>()));
 
@@ -85,10 +85,10 @@ public class WorldTests
 
         var world = await CreateMock();
 
-        var actual = await world.PublishMessage(new InteriorMessage
-        {
-            Message = "Sample message"
-        }, room.Object);
+        var actual = await world.PublishMessage(
+            new InteriorMessage("Sample message"),
+            room.Object
+        );
         Assert.True(actual);
 
         var expectedJson = @"{""message"":""Sample message""}";
@@ -103,10 +103,7 @@ public class WorldTests
         var world = await CreateMock();
         var player = GameObjectMocker.CreateRealPlayer(world, new ObjectId("p:test"), "Test player");
 
-        var cmd = new CommandRequest
-        {
-            Command = "Hello world!",
-        };
+        var cmd = new CommandRequest("Hello world!");
 
         _sys.CommandProcessor.Setup(s => s.ProcessCommand(player, cmd)).ReturnsAsync(true);
 
@@ -270,7 +267,7 @@ public class WorldTests
 
         _sys.ObjectCache.Verify(v => v.InvalidateAll<GameScript>());
 
-        var expectedJson = $"{{\"instance_id\":\"{world.WorldInstanceId}\",\"event_time\":\"{TimeUtil.FrozenTimeString}\",\"event_name\":\"invalidate_script\"}}";
+        var expectedJson = $"{{\"instance_id\":\"{world.WorldInstanceId}\",\"event_name\":\"invalidate_script\",\"event_time\":\"{TimeUtil.FrozenTimeString}\"}}";
         _sys.BackendPubSub.Verify(v => v.Publish("c:isc", expectedJson));
     }
 

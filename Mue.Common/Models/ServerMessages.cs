@@ -3,11 +3,10 @@ using System.Collections.Generic;
 
 namespace Mue.Common.Models
 {
-    public record LocalCommand
+    public record LocalCommand(string Command)
     {
-        public string Command { get; init; }
-        public string Args { get; init; }
-        public IDictionary<string, string> Params { get; init; }
+        public string? Args { get; init; }
+        public IDictionary<string, string>? Params { get; init; }
 
         public bool IsBare => String.IsNullOrEmpty(Args) && (Params == null || Params.Count < 1);
     }
@@ -18,9 +17,9 @@ namespace Mue.Common.Models
         public string ThirdPerson;
     }
 
-    public record InteriorMessage : CommunicationsMessage
+    public record InteriorMessage(string Message) : CommunicationsMessage(Message)
     {
         public new MessageFormats? ExtendedFormat;
-        public string Script { get; init; }
+        public string? Script { get; init; }
     }
 }

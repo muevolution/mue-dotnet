@@ -16,7 +16,7 @@ namespace Mue.Server.Core.System.CommandBuiltins
         [BuiltinCommand("$createscript")]
         public async Task Create(GamePlayer player, LocalCommand command)
         {
-            string name = null, targetPassword = null, targetLocation = null, targetParent = null;
+            string? name = null, targetPassword = null, targetLocation = null, targetParent = null;
 
             var type = command.Command switch
             {
@@ -53,7 +53,7 @@ namespace Mue.Server.Core.System.CommandBuiltins
                 return;
             }
 
-            IGameObject parent = null, location = null;
+            IGameObject? parent = null, location = null;
 
             if (!String.IsNullOrEmpty(targetParent))
             {
@@ -124,7 +124,7 @@ namespace Mue.Server.Core.System.CommandBuiltins
                 }
             }
 
-            IGameObject newObj = null;
+            IGameObject? newObj = null;
             try
             {
                 switch (type)

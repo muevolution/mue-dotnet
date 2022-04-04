@@ -9,12 +9,12 @@ namespace Mue.Server.Core.Objects
 {
     public record ActionMetadata : ObjectMetadata
     {
-        public ObjectId Target { get; init; }
+        public ObjectId? Target { get; init; }
     }
 
     public class GameAction : GameObject<ActionMetadata>
     {
-        public static Task<GameAction> Create(IWorld world, string name, ObjectId creator, ObjectId location = null)
+        public static Task<GameAction> Create(IWorld world, string name, ObjectId creator, ObjectId? location = null)
         {
             if (name.StartsWith("$"))
             {
@@ -37,11 +37,11 @@ namespace Mue.Server.Core.Objects
             return world.ObjectCache.StandardImitate<GameAction, ActionMetadata>(id, (meta) => Task.FromResult(new GameAction(world, meta, id)));
         }
 
-        protected GameAction(IWorld world, ActionMetadata meta, ObjectId id = null) : base(world, GameObjectType.Action, meta, id) { }
+        protected GameAction(IWorld world, ActionMetadata meta, ObjectId? id = null) : base(world, GameObjectType.Action, meta, id) { }
 
         // reparent
 
-        public ObjectId Target { get { return Meta.Target; } }
+        public ObjectId? Target { get { return Meta.Target; } }
 
         public Task<bool> SetTarget(ObjectId target)
         {

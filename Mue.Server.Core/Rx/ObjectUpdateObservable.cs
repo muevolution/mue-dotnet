@@ -15,25 +15,13 @@ namespace Mue.Server.Core.Rx
 
         public void PublishObjectEvent<T>(ObjectId id, string eventName, T meta) where T : IObjectUpdateResult
         {
-            var update = new ObjectUpdate
-            {
-                Id = id,
-                EventName = eventName,
-                Meta = meta,
-            };
-
+            var update = new ObjectUpdate(id, eventName, meta);
             _subject.OnNext(update);
         }
 
         public void PublishPlayerEvent<T>(ObjectId id, string eventName, T meta) where T : IPlayerUpdateResult
         {
-            var update = new PlayerUpdate
-            {
-                Id = id,
-                EventName = eventName,
-                Meta = meta,
-            };
-
+            var update = new PlayerUpdate(id, eventName, meta);
             _subject.OnNext(update);
         }
     }
