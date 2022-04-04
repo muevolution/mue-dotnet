@@ -1,10 +1,6 @@
-using System.Threading;
-using System.Threading.Tasks;
+namespace Mue.Server.Tools;
 
-namespace Mue.Server.Tools
+public interface StandardTask
 {
-    public interface StandardTask
-    {
-        Task Start(CancellationToken cancellationToken);
-    }
+    Task Start(CancellationToken cancellationToken);
 }

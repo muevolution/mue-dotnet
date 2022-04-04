@@ -1,121 +1,116 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Mue.Server.Core.Objects;
 using Mue.Server.Core.System;
-using Mue.Server.Core.Utils;
 
-namespace Mue.Server.Core.Models
+namespace Mue.Server.Core.Models;
+
+public class ObjectIdPropListHelper
 {
-    public class ObjectIdPropListHelper
+    private IGameObject? _obj;
+    private IWorld? _world;
+    private ObjectId? _objId;
+    private string _propKey;
+
+    public ObjectIdPropListHelper(IGameObject obj, string propKey)
     {
-        private IGameObject? _obj;
-        private IWorld? _world;
-        private ObjectId? _objId;
-        private string _propKey;
+        _obj = obj;
+        _propKey = propKey;
+    }
 
-        public ObjectIdPropListHelper(IGameObject obj, string propKey)
+    public ObjectIdPropListHelper(IWorld world, ObjectId id, string propKey)
+    {
+        _world = world;
+        _objId = id;
+        _propKey = propKey;
+    }
+
+    public async Task<bool> Add(ObjectId id)
+    {
+        var hs = await this.GetValue();
+        if (hs.Add(id))
         {
-            _obj = obj;
-            _propKey = propKey;
+            await SetValue(hs);
+            return true;
+        }
+        return false;
+    }
+
+    public async Task<bool> Remove(ObjectId id)
+    {
+        var hs = await this.GetValue();
+        if (hs.Remove(id))
+        {
+            await SetValue(hs);
+            return true;
+        }
+        return false;
+    }
+
+    public async Task<bool> Contains(ObjectId id)
+    {
+        var hs = await this.GetValue();
+        return hs.Contains(id);
+    }
+
+    public async Task<IList<ObjectId>> All()
+    {
+        var hs = await this.GetValue();
+        return hs.ToList();
+    }
+
+    private async Task<HashSet<ObjectId>> GetValue()
+    {
+        var propVal = await GetProp();
+        var listVal = propVal?.ListValue;
+        if (listVal == null)
+        {
+            return new HashSet<ObjectId>();
         }
 
-        public ObjectIdPropListHelper(IWorld world, ObjectId id, string propKey)
+        var existingIds = listVal.Where(w => w.ValueType == FlatPropValueType.ObjectId).Select(s => s.ObjectIdValue).WhereNotNull();
+        if (existingIds == null)
         {
-            _world = world;
-            _objId = id;
-            _propKey = propKey;
+            return new HashSet<ObjectId>();
         }
 
-        public async Task<bool> Add(ObjectId id)
+        return new HashSet<ObjectId>(existingIds);
+    }
+
+    private async Task SetValue(HashSet<ObjectId> hs)
+    {
+        var newListVals = hs.Select(s => new FlatPropValue(s));
+        var propVal = new PropValue(newListVals);
+        await SetProp(propVal);
+    }
+
+    private Task<PropValue> GetProp()
+    {
+        if (_obj != null)
         {
-            var hs = await this.GetValue();
-            if (hs.Add(id))
-            {
-                await SetValue(hs);
-                return true;
-            }
-            return false;
+            return _obj.GetProp(_propKey);
         }
-
-        public async Task<bool> Remove(ObjectId id)
+        else if (_world != null && _objId != null)
         {
-            var hs = await this.GetValue();
-            if (hs.Remove(id))
-            {
-                await SetValue(hs);
-                return true;
-            }
-            return false;
+            return _world.StorageManager.GetProp(_objId, _propKey);
         }
-
-        public async Task<bool> Contains(ObjectId id)
+        else
         {
-            var hs = await this.GetValue();
-            return hs.Contains(id);
+            throw new InvalidOperationException();
         }
+    }
 
-        public async Task<IList<ObjectId>> All()
+    private Task SetProp(PropValue val)
+    {
+        if (_obj != null)
         {
-            var hs = await this.GetValue();
-            return hs.ToList();
+            return _obj.SetProp(_propKey, val);
         }
-
-        private async Task<HashSet<ObjectId>> GetValue()
+        else if (_world != null && _objId != null)
         {
-            var propVal = await GetProp();
-            var listVal = propVal?.ListValue;
-            if (listVal == null)
-            {
-                return new HashSet<ObjectId>();
-            }
-
-            var existingIds = listVal.Where(w => w.ValueType == FlatPropValueType.ObjectId).Select(s => s.ObjectIdValue).WhereNotNull();
-            if (existingIds == null)
-            {
-                return new HashSet<ObjectId>();
-            }
-
-            return new HashSet<ObjectId>(existingIds);
+            return _world.StorageManager.SetProp(_objId, _propKey, val);
         }
-
-        private async Task SetValue(HashSet<ObjectId> hs)
+        else
         {
-            var newListVals = hs.Select(s => new FlatPropValue(s));
-            var propVal = new PropValue(newListVals);
-            await SetProp(propVal);
-        }
-
-        private Task<PropValue> GetProp()
-        {
-            if (_obj != null)
-            {
-                return _obj.GetProp(_propKey);
-            }
-            else if (_world != null && _objId != null)
-            {
-                return _world.StorageManager.GetProp(_objId, _propKey);
-            }
-            else
-            {
-                throw new InvalidOperationException();
-            }
-        }
-
-        private Task SetProp(PropValue val)
-        {
-            if (_obj != null)
-            {
-                return _obj.SetProp(_propKey, val);
-            }
-            else if (_world != null && _objId != null)
-            {
-                return _world.StorageManager.SetProp(_objId, _propKey, val);
-            }
-            else
-            {
-                throw new InvalidOperationException();
-            }
+            throw new InvalidOperationException();
         }
     }
 }

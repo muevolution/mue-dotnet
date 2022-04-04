@@ -11,4 +11,10 @@
     <ProjectReference Include="..\Mue.Clients.Common\Mue.Clients.Common.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Using Include="Mue.Clients.ClientServer" />
+    <Using Include="Mue.Common.ClientServer" />
+    <Using Include="Mue.Common.Models" />
+  </ItemGroup>
+
 </Project>

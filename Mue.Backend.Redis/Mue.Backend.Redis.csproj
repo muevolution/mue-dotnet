@@ -15,4 +15,8 @@
     <PackageReference Include="StackExchange.Redis" Version="2.5.43" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Using Include="StackExchange.Redis" />
+  </ItemGroup>
+
 </Project>

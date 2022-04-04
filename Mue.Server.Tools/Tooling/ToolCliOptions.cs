@@ -1,27 +1,24 @@
-using System;
-using System.Collections.Generic;
 using CommandLine;
 using Microsoft.Extensions.Configuration;
 
-namespace Mue.Server.Tools
+namespace Mue.Server.Tools;
+
+public class ToolCliOptions
 {
-    public class ToolCliOptions
+    public ToolCliOptions(string task)
     {
-        public ToolCliOptions(string task)
-        {
-            this.Task = task;
-        }
+        this.Task = task;
+    }
 
-        [Option(Required = true, HelpText = "Task to run")]
-        public string Task { get; set; }
+    [Option(Required = true, HelpText = "Task to run")]
+    public string Task { get; set; }
 
-        public void AddCliOptions(IConfigurationBuilder config)
-        {
-            var dict = new Dictionary<string, string>();
+    public void AddCliOptions(IConfigurationBuilder config)
+    {
+        var dict = new Dictionary<string, string>();
 
-            dict.Add("ToolSettings:Task", this.Task);
+        dict.Add("ToolSettings:Task", this.Task);
 
-            config.AddInMemoryCollection(dict);
-        }
+        config.AddInMemoryCollection(dict);
     }
 }

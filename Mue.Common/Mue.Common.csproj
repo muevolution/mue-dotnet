@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Using Include="Mue.Common.ClientServer" />
+    <Using Include="Mue.Common.Models" />
+  </ItemGroup>
+
 </Project>

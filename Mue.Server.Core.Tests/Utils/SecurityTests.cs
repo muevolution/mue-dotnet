@@ -1,7 +1,3 @@
-using System;
-using Mue.Server.Core.Utils;
-using Xunit;
-
 public class SecurityTests
 {
     [Fact]

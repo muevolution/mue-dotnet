@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Mue.Server.Core.Models;
-using Xunit;
-
 public class PropsTests
 {
     [Fact]

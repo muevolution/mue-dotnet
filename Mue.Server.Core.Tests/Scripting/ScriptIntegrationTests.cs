@@ -1,10 +1,5 @@
-using System;
-using System.Threading.Tasks;
-using Moq;
 using Mue.Scripting;
 using Mue.Server.Core.Scripting;
-using Mue.Server.Core.Tests;
-using Xunit;
 
 public class ScriptIntegrationTests
 {

@@ -1,55 +1,48 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
-using Mue.Clients.ClientServer;
-using Mue.Common.Models;
+namespace Mue.Clients.Telnet;
 
-namespace Mue.Clients.Telnet
+public class AuthManager
 {
-    public class AuthManager
+    private AuthRequest? _cachedState;
+
+    public HubClientSession? CurrentSession { get; set; }
+    public bool IsAuthenticated { get; private set; }
+    public bool ShouldReauth => IsAuthenticated && CurrentSession != null;
+
+    public void OnAuthenticated(AuthRequest cachedState)
     {
-        private AuthRequest? _cachedState;
+        _cachedState = cachedState;
+        this.IsAuthenticated = true;
+    }
 
-        public HubClientSession? CurrentSession { get; set; }
-        public bool IsAuthenticated { get; private set; }
-        public bool ShouldReauth => IsAuthenticated && CurrentSession != null;
+    public void ClearAuth()
+    {
+        this.IsAuthenticated = false;
+    }
 
-        public void OnAuthenticated(AuthRequest cachedState)
+    public async Task<bool> PerformAuthentication(StreamWriter writer, AuthRequest? authRequest = null)
+    {
+        if (CurrentSession?.Client == null)
         {
-            _cachedState = cachedState;
-            this.IsAuthenticated = true;
+            throw new InvalidOperationException();
         }
 
-        public void ClearAuth()
+        var req = authRequest ?? _cachedState ?? throw new ArgumentNullException("authRequest");
+        var res = await CurrentSession.Client.Auth(req);
+        if (res.Fatal)
         {
-            this.IsAuthenticated = false;
+            throw new Exception("Command threw fatal: " + res.Message);
+        }
+        else if (!res.Success)
+        {
+            await writer.WriteLineAsync("AUTH> Authentication failed. " + res.Message);
+            return false;
         }
 
-        public async Task<bool> PerformAuthentication(StreamWriter writer, AuthRequest? authRequest = null)
-        {
-            if (CurrentSession?.Client == null)
-            {
-                throw new InvalidOperationException();
-            }
+        // Assume we've authenticated
+        await writer.WriteLineAsync("AUTH> Authentication succeeded!");
+        _cachedState = authRequest;
+        this.IsAuthenticated = true;
 
-            var req = authRequest ?? _cachedState ?? throw new ArgumentNullException("authRequest");
-            var res = await CurrentSession.Client.Auth(req);
-            if (res.Fatal)
-            {
-                throw new Exception("Command threw fatal: " + res.Message);
-            }
-            else if (!res.Success)
-            {
-                await writer.WriteLineAsync("AUTH> Authentication failed. " + res.Message);
-                return false;
-            }
-
-            // Assume we've authenticated
-            await writer.WriteLineAsync("AUTH> Authentication succeeded!");
-            _cachedState = authRequest;
-            this.IsAuthenticated = true;
-
-            return true;
-        }
+        return true;
     }
 }

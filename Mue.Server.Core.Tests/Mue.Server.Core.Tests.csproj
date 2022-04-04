@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
@@ -21,6 +22,15 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Mue.Server.Core\Mue.Server.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Moq" />
+    <Using Include="Mue.Common.Models" />
+    <Using Include="Mue.Server.Core.Models" />
+    <Using Include="Mue.Server.Core.Objects" />
+    <Using Include="Mue.Server.Core.Utils" />
+    <Using Include="Xunit" />
   </ItemGroup>
 
 </Project>

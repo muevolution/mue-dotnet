@@ -15,6 +15,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Using Include="IronPython.Hosting" />
+    <Using Include="Microsoft.Scripting.Hosting" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="PyLib\**">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>  

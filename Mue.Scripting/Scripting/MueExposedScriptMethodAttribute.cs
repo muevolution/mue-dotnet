@@ -1,12 +1,9 @@
-using System;
+namespace Mue.Scripting;
 
-namespace Mue.Scripting
+[AttributeUsage(AttributeTargets.Method)]
+public class MueExposedScriptMethodAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Method)]
-    public class MueExposedScriptMethodAttribute : Attribute
+    public MueExposedScriptMethodAttribute()
     {
-        public MueExposedScriptMethodAttribute()
-        {
-        }
     }
 }

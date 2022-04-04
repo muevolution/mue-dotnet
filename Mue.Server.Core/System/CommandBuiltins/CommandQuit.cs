@@ -1,17 +1,11 @@
-using System;
-using System.Threading.Tasks;
-using Mue.Common.Models;
-using Mue.Server.Core.Objects;
+namespace Mue.Server.Core.System.CommandBuiltins;
 
-namespace Mue.Server.Core.System.CommandBuiltins
+public partial class BuiltinCommands
 {
-    public partial class BuiltinCommands
+    [BuiltinCommand("$quit")]
+    public Task Quit(GamePlayer player, LocalCommand command)
     {
-        [BuiltinCommand("$quit")]
-        public Task Quit(GamePlayer player, LocalCommand command)
-        {
-            player.Quit("Quit by user request");
-            return Task.CompletedTask;
-        }
+        player.Quit("Quit by user request");
+        return Task.CompletedTask;
     }
 }

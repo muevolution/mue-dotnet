@@ -1,9 +1,3 @@
-using System;
-using System.Threading.Tasks;
-using Moq;
-using Mue.Scripting;
-using Xunit;
-
 public class ScriptEngineTests
 {
     private (dynamic, Mock<Action<object>>) CreateIntegrator()

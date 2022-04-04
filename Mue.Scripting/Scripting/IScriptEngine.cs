@@ -1,9 +1,6 @@
-using System.Threading.Tasks;
+namespace Mue.Scripting;
 
-namespace Mue.Scripting
+public interface IScriptEngine
 {
-    public interface IScriptEngine
-    {
-        Task SpawnAndRun(string scriptName, string script, uint timeout, dynamic binding);
-    }
+    Task SpawnAndRun(string scriptName, string script, uint timeout, dynamic binding);
 }

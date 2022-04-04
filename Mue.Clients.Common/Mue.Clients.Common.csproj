@@ -15,4 +15,10 @@
     <ProjectReference Include="..\Mue.Common\Mue.Common.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Using Include="Microsoft.AspNetCore.SignalR.Client" />
+    <Using Include="Mue.Common.ClientServer" />
+    <Using Include="Mue.Common.Models" />
+  </ItemGroup>
+
 </Project>

@@ -1,119 +1,116 @@
-using System;
 using System.Text.RegularExpressions;
 using Mue.Server.Core.Objects;
-using Mue.Server.Core.Utils;
 using Newtonsoft.Json;
 
-namespace Mue.Server.Core.Models
+namespace Mue.Server.Core.Models;
+
+[JsonConverter(typeof(ObjectIdConverter))]
+public record ObjectId
 {
-    [JsonConverter(typeof(ObjectIdConverter))]
-    public record ObjectId
+    public static readonly ObjectId Empty = new ObjectId();
+    private static readonly Regex ObjectIdRegex = new Regex($"^[{String.Join("", GameObjectConsts.GameObjectValidTypePrefixes)}]:[a-zA-Z0-9]+");
+
+    public ObjectId()
     {
-        public static readonly ObjectId Empty = new ObjectId();
-        private static readonly Regex ObjectIdRegex = new Regex($"^[{String.Join("", GameObjectConsts.GameObjectValidTypePrefixes)}]:[a-zA-Z0-9]+");
+        IsAssigned = false;
+    }
 
-        public ObjectId()
+    public ObjectId(string? anyId = null, GameObjectType? checkType = null)
+    {
+        if (String.IsNullOrWhiteSpace(anyId))
         {
-            IsAssigned = false;
+            throw new IllegalObjectIdConstructorException("Object ID cannot be empty.", anyId);
         }
 
-        public ObjectId(string? anyId = null, GameObjectType? checkType = null)
+        var a = anyId.Split(":");
+        if (a.Length < 2)
         {
-            if (String.IsNullOrWhiteSpace(anyId))
+            // Only given a shortid
+            ShortId = a[0];
+
+            if (checkType.HasValue)
             {
-                throw new IllegalObjectIdConstructorException("Object ID cannot be empty.", anyId);
+                // We were given a checkType which means we can use it as the origin type
+                // This makes the shortid valid
+                ObjectType = checkType.Value;
+                IsAssigned = true;
             }
 
-            var a = anyId.Split(":");
-            if (a.Length < 2)
-            {
-                // Only given a shortid
-                ShortId = a[0];
-
-                if (checkType.HasValue)
-                {
-                    // We were given a checkType which means we can use it as the origin type
-                    // This makes the shortid valid
-                    ObjectType = checkType.Value;
-                    IsAssigned = true;
-                }
-
-                return;
-            }
-
-            // We should have a full ID here (T:qwerty)
-
-            if (String.IsNullOrWhiteSpace(a[0]))
-            {
-                throw new IllegalObjectIdConstructorException("Type cannot be empty.", anyId);
-            }
-            else if (String.IsNullOrWhiteSpace(a[1]))
-            {
-                throw new IllegalObjectIdConstructorException("ID cannot be empty.", anyId);
-            }
-
-            ObjectType = GameObjectConsts.GetGameObjectType(a[0]);
-
-            if (ObjectType == GameObjectType.Invalid)
-            {
-                throw new IllegalObjectIdConstructorException($"Invalid object type {a[0]}", anyId);
-            }
-            else if (checkType.HasValue && ObjectType != checkType.Value)
-            {
-                throw new IllegalObjectIdConstructorException($"Object ID {anyId} does not match requested type {checkType}", anyId);
-            }
-
-            ShortId = a[1];
-            IsAssigned = true;
+            return;
         }
 
-        public bool IsAssigned { get; init; }
-        public string Id { get { return ShortId != null && ObjectType != GameObjectType.Invalid ? $"{ObjectType.ToShortString()}:{ShortId}" : null!; } }
-        public GameObjectType ObjectType { get; init; } = GameObjectType.Invalid;
-        public string? ShortId { get; init; }
+        // We should have a full ID here (T:qwerty)
 
-        public override string? ToString()
+        if (String.IsNullOrWhiteSpace(a[0]))
         {
-            return Id;
+            throw new IllegalObjectIdConstructorException("Type cannot be empty.", anyId);
+        }
+        else if (String.IsNullOrWhiteSpace(a[1]))
+        {
+            throw new IllegalObjectIdConstructorException("ID cannot be empty.", anyId);
         }
 
-        public static bool LooksLikeAnId(string idStr)
+        ObjectType = GameObjectConsts.GetGameObjectType(a[0]);
+
+        if (ObjectType == GameObjectType.Invalid)
         {
-            return ObjectIdRegex.IsMatch(idStr);
+            throw new IllegalObjectIdConstructorException($"Invalid object type {a[0]}", anyId);
+        }
+        else if (checkType.HasValue && ObjectType != checkType.Value)
+        {
+            throw new IllegalObjectIdConstructorException($"Object ID {anyId} does not match requested type {checkType}", anyId);
+        }
+
+        ShortId = a[1];
+        IsAssigned = true;
+    }
+
+    public bool IsAssigned { get; init; }
+    public string Id { get { return ShortId != null && ObjectType != GameObjectType.Invalid ? $"{ObjectType.ToShortString()}:{ShortId}" : null!; } }
+    public GameObjectType ObjectType { get; init; } = GameObjectType.Invalid;
+    public string? ShortId { get; init; }
+
+    public override string? ToString()
+    {
+        return Id;
+    }
+
+    public static bool LooksLikeAnId(string idStr)
+    {
+        return ObjectIdRegex.IsMatch(idStr);
+    }
+}
+
+class ObjectIdConverter : JsonConverter
+{
+    public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+    {
+        var objId = value as ObjectId;
+        if (objId == null || !objId.IsAssigned)
+        {
+            writer.WriteNull();
+        }
+        else
+        {
+            writer.WriteValue(objId.Id);
         }
     }
 
-    class ObjectIdConverter : JsonConverter
+    public override object ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
     {
-        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer)
+        var id = (string?)reader.Value;
+        if (id == null)
         {
-            var objId = value as ObjectId;
-            if (objId == null || !objId.IsAssigned)
-            {
-                writer.WriteNull();
-            }
-            else
-            {
-                writer.WriteValue(objId.Id);
-            }
+            return ObjectId.Empty;
         }
+        else
+        {
+            return new ObjectId(id);
+        }
+    }
 
-        public override object ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer)
-        {
-            var id = (string?)reader.Value;
-            if (id == null)
-            {
-                return ObjectId.Empty;
-            }
-            else
-            {
-                return new ObjectId(id);
-            }
-        }
-
-        public override bool CanConvert(Type typeToConvert)
-        {
-            return typeToConvert == typeof(ObjectId);
-        }
+    public override bool CanConvert(Type typeToConvert)
+    {
+        return typeToConvert == typeof(ObjectId);
     }
 }

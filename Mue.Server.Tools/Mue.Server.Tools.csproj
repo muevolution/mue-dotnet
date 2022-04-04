@@ -19,4 +19,9 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Using Include="Microsoft.Extensions.Logging" />
+    <Using Include="Mue.Server.Core.System" />
+  </ItemGroup>
+
 </Project>

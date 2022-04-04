@@ -1,15 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-using Moq;
-using Mue.Common.Models;
 using Mue.Scripting;
-using Mue.Server.Core.Models;
-using Mue.Server.Core.Objects;
 using Mue.Server.Core.Scripting;
-using Mue.Server.Core.Tests;
-using Xunit;
 
 public class DefaultScriptTests
 {

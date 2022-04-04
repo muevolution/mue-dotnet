@@ -24,4 +24,14 @@
     <PackageReference Include="System.Reactive.Linq" Version="5.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Using Include="Microsoft.Extensions.Logging" />
+    <Using Include="Mue.Common.ClientServer" />
+    <Using Include="Mue.Common.Models" />
+    <Using Include="Mue.Server.Core.Models" />
+    <Using Include="Mue.Server.Core.Objects" />
+    <Using Include="Mue.Server.Core.System" />
+    <Using Include="Mue.Server.Core.Utils" />
+  </ItemGroup>
+
 </Project>
