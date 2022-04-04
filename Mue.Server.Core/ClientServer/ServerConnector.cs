@@ -1,11 +1,7 @@
 using System.Reactive.Linq;
 using System.Reactive;
-using Microsoft.Extensions.Logging;
 using Mue.Backend.PubSub;
-using Mue.Server.Core.Objects;
-using Mue.Server.Core.System;
-using Mue.Server.Core.Models;
-using Mue.Server.Core.Utils;
+using System.Collections.ObjectModel;
 
 namespace Mue.Server.Core.ClientServer;
 
@@ -173,7 +169,7 @@ public class ServerConnector : IClientToServer
                     break;
                 }
 
-                var extendedContent = MergeSubstitutions(msgObj.ExtendedContent, localMsg.Substitutions);
+                var extendedContent = GeneralUtils.MergeDicts(msgObj.ExtendedContent, localMsg.Substitutions);
 
                 var output = new CommunicationsMessage(localMsg?.Message ?? msgObj.Message)
                 {
@@ -240,26 +236,6 @@ public class ServerConnector : IClientToServer
         }
 
         return Unit.Default;
-    }
-
-    private IReadOnlyDictionary<string, string> MergeSubstitutions(IReadOnlyDictionary<string, string>? dictA, IReadOnlyDictionary<string, string>? dictB)
-    {
-        var outputDict = new Dictionary<string, string>();
-        if (dictA != null)
-        {
-            foreach (var kvp in dictA)
-            {
-                outputDict.TryAdd(kvp.Key, kvp.Value);
-            }
-        }
-        if (dictB != null)
-        {
-            foreach (var kvp in dictB)
-            {
-                outputDict.TryAdd(kvp.Key, kvp.Value);
-            }
-        }
-        return outputDict;
     }
 
     private FormattedMessage GetLocalMessage(InteriorMessage msg)

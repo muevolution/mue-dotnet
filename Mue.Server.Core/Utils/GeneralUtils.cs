@@ -13,8 +13,30 @@ public static class GeneralUtils
         return value.Where(w => w != null).Cast<T>();
     }
 
-    public static IReadOnlyDictionary<T1, T2> WhereNotNull<T1, T2>(this IDictionary<T1, T2?> value) where T1 : notnull
+    public static IReadOnlyDictionary<T1, T2> WhereNotNull<T1, T2>(this IReadOnlyDictionary<T1, T2?> value) where T1 : notnull
     {
         return value.Where(w => w.Value != null).Cast<KeyValuePair<T1, T2>>().ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+    }
+
+    public static IReadOnlyDictionary<string, string> MergeDicts(IEnumerable<KeyValuePair<string, string>>? dictA, IEnumerable<KeyValuePair<string, string>>? dictB)
+    {
+        var outputDict = new Dictionary<string, string>();
+
+        if (dictA != null)
+        {
+            foreach (var kvp in dictA)
+            {
+                outputDict.TryAdd(kvp.Key, kvp.Value);
+            }
+        }
+        if (dictB != null)
+        {
+            foreach (var kvp in dictB)
+            {
+                outputDict.TryAdd(kvp.Key, kvp.Value);
+            }
+        }
+
+        return outputDict;
     }
 }

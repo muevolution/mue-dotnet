@@ -16,13 +16,13 @@ public class MueScriptWorld
     }
 
     [MueExposedScriptMethod]
-    public Task TellShort(string message, string? target = null, IDictionary<string, string>? meta = null)
+    public Task TellShort(string message, string? target = null, IReadOnlyDictionary<string, string>? meta = null)
     {
         return TellAsync(message, target, meta);
     }
 
     [MueExposedScriptMethod]
-    public Task TellExtended(IDictionary<string, string> extendedFormat, IDictionary<string, string> extendedContent, string? target = null, IDictionary<string, string>? meta = null)
+    public Task TellExtended(IReadOnlyDictionary<string, string> extendedFormat, IReadOnlyDictionary<string, string> extendedContent, string? target = null, IReadOnlyDictionary<string, string>? meta = null)
     {
         var msgFormats = new MessageFormats
         {
@@ -34,16 +34,17 @@ public class MueScriptWorld
     }
 
     [MueExposedScriptMethod]
-    public Task TellTable(IEnumerable<IEnumerable<string>> table, string? message = null, bool hasHeader = false, string? target = null, IDictionary<string, string>? meta = null)
+    public Task TellTable(IEnumerable<IEnumerable<string>> table, string? message = null, bool hasHeader = false, string? target = null, IReadOnlyDictionary<string, string>? meta = null)
     {
-        var fullMeta = meta ?? new Dictionary<string, string>();
-        fullMeta[CommunicationsMessage.META_RENDERER] = CommunicationsMessage.META_RENDERER_TABLE;
-        fullMeta[CommunicationsMessage.META_TABLE_CONTENT] = Json.Serialize(new CommunicationsMessage_Table(table, hasHeader, message));
+        var systemMeta = new Dictionary<string, string>() {
+            {CommunicationsMessage.META_RENDERER, CommunicationsMessage.META_RENDERER_TABLE},
+            {CommunicationsMessage.META_TABLE_CONTENT, Json.Serialize(new CommunicationsMessage_Table(table, hasHeader, message))},
+        };
 
-        return TellAsync(CommunicationsMessage.MSG_NO_TABLES, target, fullMeta);
+        return TellAsync(CommunicationsMessage.MSG_NO_TABLES, target, meta, systemMeta: systemMeta);
     }
 
-    private async Task TellAsync(string message, string? target = null, IDictionary<string, string>? meta = null, MessageFormats? extendedFormat = null, IDictionary<string, string>? extendedContent = null)
+    private async Task TellAsync(string message, string? target = null, IReadOnlyDictionary<string, string>? meta = null, MessageFormats? extendedFormat = null, IReadOnlyDictionary<string, string>? extendedContent = null, IReadOnlyDictionary<string, string>? systemMeta = null)
     {
         var targetObjId = new ObjectId(target != null ? target : _executor.RunBy);
         var targetObj = await _world.GetObjectById(targetObjId);
@@ -54,14 +55,16 @@ public class MueScriptWorld
 
         if (meta != null)
         {
-            CommunicationsMessage.PurifyMeta(meta);
+            meta = CommunicationsMessage.PurifyMeta(meta);
         }
+
+        var fullMeta = GeneralUtils.MergeDicts(systemMeta, meta);
 
         await _world.PublishMessage(new InteriorMessage(message)
         {
             Source = _executor.RunBy,
-            Meta = meta,
-            ExtendedContent = extendedContent != null ? new ReadOnlyDictionary<string, string>(extendedContent) : null,
+            Meta = fullMeta,
+            ExtendedContent = extendedContent,
             ExtendedFormat = extendedFormat,
             Script = _executor.ThisScript,
         }, targetObj);
@@ -144,7 +147,7 @@ public class MueScriptWorld
     }
 
     [MueExposedScriptMethod]
-    public async Task<IDictionary<string, dynamic?>?> GetProps(string objectId)
+    public async Task<IReadOnlyDictionary<string, dynamic?>?> GetProps(string objectId)
     {
         var obj = await _world.GetObjectById(new ObjectId(objectId));
         if (obj == null)

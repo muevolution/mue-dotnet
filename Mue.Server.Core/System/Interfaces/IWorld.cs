@@ -12,7 +12,7 @@ public interface IWorld
     ICommandProcessor CommandProcessor { get; }
     IStorageManager StorageManager { get; }
     IObjectCache ObjectCache { get; }
-    Task<bool> PublishMessage(string message, IGameObject? target = null, IDictionary<string, string>? meta = null);
+    Task<bool> PublishMessage(string message, IGameObject? target = null, IReadOnlyDictionary<string, string>? meta = null);
     Task<bool> PublishMessage(InteriorMessage message, IGameObject? target = null);
     Task<bool> PlayerCommand(GamePlayer player, CommandRequest command);
     Task<GamePlayer?> GetPlayerByName(string name);

@@ -228,8 +228,8 @@ public class CommandProcessor : ICommandProcessor
                 {
                     Source = player.Id.Id,
                     Meta = new Dictionary<string, string> {
-                            {"Exception", e.ToString()}
-                        }
+                        {"Exception", e.ToString()},
+                    }
                 };
 
                 await player.SendMessage(msg);

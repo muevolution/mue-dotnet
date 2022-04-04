@@ -38,13 +38,15 @@ public record CommunicationsMessage(string Message)
     public string? Target { get; init; }
     public IReadOnlyDictionary<string, string>? ExtendedContent { get; init; }
     public string? ExtendedFormat { get; init; }
-    public IDictionary<string, string>? Meta { get; init; }
+    public IReadOnlyDictionary<string, string>? Meta { get; init; }
 
-    public static void PurifyMeta(IDictionary<string, string> meta)
+    public static IReadOnlyDictionary<string, string> PurifyMeta(IReadOnlyDictionary<string, string> meta)
     {
-        meta.Remove(META_ERRTYPE);
-        meta.Remove(META_ORIGIN);
-        meta.Remove(META_RENDERER);
+        var dict = new Dictionary<string, string>(meta);
+        dict.Remove(META_ERRTYPE);
+        dict.Remove(META_ORIGIN);
+        dict.Remove(META_RENDERER);
+        return dict;
     }
 }
 
