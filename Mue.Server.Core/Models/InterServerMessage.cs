@@ -10,7 +10,7 @@ public interface IGlobalUpdate
 public record InterServerMessage(
     string InstanceId,
     string EventName,
-    IReadOnlyDictionary<string, string>? Meta = null
+    IDictionary<string, string>? Meta = null
 ) : IGlobalUpdate
 {
     public const string EVENT_JOINED = "joined";

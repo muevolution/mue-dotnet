@@ -36,7 +36,7 @@ class RedisStorageOps : IBackendStorageOperations
         return val.ToDictionary(s => (string)s.Name, s => (string)s.Value);
     }
 
-    public async Task<bool> HashSetAll(string key, IReadOnlyDictionary<string, string> values)
+    public async Task<bool> HashSetAll(string key, IDictionary<string, string> values)
     {
         await _db.HashSetAsync(key, values.Select(s => new HashEntry(s.Key, s.Value)).ToArray());
         return true;

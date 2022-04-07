@@ -21,7 +21,7 @@ public interface IGameObject
     Task<PropValue> GetProp(string path);
     Task<IReadOnlyDictionary<string, PropValue>> GetProps();
     Task<bool> SetProp(string path, PropValue value);
-    Task<bool> SetProps(IReadOnlyDictionary<string, PropValue> values);
+    Task<bool> SetProps(IDictionary<string, PropValue> values);
     bool MatchName(string term);
     Task<bool> Rename(string newName);
     Task<ReparentResult?> Reparent(ObjectId newParent);

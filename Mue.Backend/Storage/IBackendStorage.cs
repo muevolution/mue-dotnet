@@ -20,7 +20,7 @@ public interface IBackendStorageOperations
 
     // Hash operations
     Task<IReadOnlyDictionary<string, string>> HashGetAll(string key);
-    Task<bool> HashSetAll(string key, IReadOnlyDictionary<string, string> values);
+    Task<bool> HashSetAll(string key, IDictionary<string, string> values);
     Task<string?> HashGetField(string key, string field);
     Task<bool> HashSetField(string key, string field, string value);
     Task<bool> HashDeleteField(string key, string field);

@@ -16,13 +16,13 @@ public class MueScriptWorld
     }
 
     [MueExposedScriptMethod]
-    public Task TellShort(string message, string? target = null, IReadOnlyDictionary<string, string>? meta = null)
+    public Task TellShort(string message, string? target = null, IDictionary<string, string>? meta = null)
     {
         return TellAsync(message, target, meta);
     }
 
     [MueExposedScriptMethod]
-    public Task TellExtended(IReadOnlyDictionary<string, string> extendedFormat, IReadOnlyDictionary<string, string> extendedContent, string? target = null, IReadOnlyDictionary<string, string>? meta = null)
+    public Task TellExtended(IDictionary<string, string> extendedFormat, IDictionary<string, string> extendedContent, string? target = null, IDictionary<string, string>? meta = null)
     {
         var msgFormats = new MessageFormats
         {
@@ -34,7 +34,7 @@ public class MueScriptWorld
     }
 
     [MueExposedScriptMethod]
-    public Task TellTable(IEnumerable<IEnumerable<string>> table, string? message = null, bool hasHeader = false, string? target = null, IReadOnlyDictionary<string, string>? meta = null)
+    public Task TellTable(IEnumerable<IEnumerable<string>> table, string? message = null, bool hasHeader = false, string? target = null, IDictionary<string, string>? meta = null)
     {
         var systemMeta = new Dictionary<string, string>() {
             {CommunicationsMessage.META_RENDERER, CommunicationsMessage.META_RENDERER_TABLE},
@@ -44,7 +44,7 @@ public class MueScriptWorld
         return TellAsync(CommunicationsMessage.MSG_NO_TABLES, target, meta, systemMeta: systemMeta);
     }
 
-    private async Task TellAsync(string message, string? target = null, IReadOnlyDictionary<string, string>? meta = null, MessageFormats? extendedFormat = null, IReadOnlyDictionary<string, string>? extendedContent = null, IReadOnlyDictionary<string, string>? systemMeta = null)
+    private async Task TellAsync(string message, string? target = null, IDictionary<string, string>? meta = null, MessageFormats? extendedFormat = null, IDictionary<string, string>? extendedContent = null, IDictionary<string, string>? systemMeta = null)
     {
         var targetObjId = new ObjectId(target != null ? target : _executor.RunBy);
         var targetObj = await _world.GetObjectById(targetObjId);

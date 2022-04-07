@@ -36,11 +36,11 @@ public record CommunicationsMessage(string Message)
 
     public string? Source { get; init; }
     public string? Target { get; init; }
-    public IReadOnlyDictionary<string, string>? ExtendedContent { get; init; }
+    public IDictionary<string, string>? ExtendedContent { get; init; }
     public string? ExtendedFormat { get; init; }
-    public IReadOnlyDictionary<string, string>? Meta { get; init; }
+    public IDictionary<string, string>? Meta { get; init; }
 
-    public static IReadOnlyDictionary<string, string> PurifyMeta(IReadOnlyDictionary<string, string> meta)
+    public static IDictionary<string, string> PurifyMeta(IDictionary<string, string> meta)
     {
         var dict = new Dictionary<string, string>(meta);
         dict.Remove(META_ERRTYPE);

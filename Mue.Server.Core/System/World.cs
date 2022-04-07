@@ -59,7 +59,7 @@ public class World : IWorld
     public IStorageManager StorageManager => _systemFactory.StorageManager;
     public IObjectCache ObjectCache => _systemFactory.ObjectCache;
 
-    public Task<bool> PublishMessage(string message, IGameObject? target = null, IReadOnlyDictionary<string, string>? meta = null)
+    public Task<bool> PublishMessage(string message, IGameObject? target = null, IDictionary<string, string>? meta = null)
     {
         return PublishMessage(new InteriorMessage(message) { Meta = meta }, target);
     }

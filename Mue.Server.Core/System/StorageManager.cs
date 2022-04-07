@@ -160,7 +160,7 @@ public class StorageManager : IStorageManager
         return true;
     }
 
-    public async Task<bool> SetProps(ObjectId owner, IReadOnlyDictionary<string, PropValue> values)
+    public async Task<bool> SetProps(ObjectId owner, IDictionary<string, PropValue> values)
     {
         var key = StorageManagerKeys.GetPropKeyStructure(owner);
         var serialized = values.ToDictionary(s => s.Key, s => s.Value.ToJsonString()).WhereNotNull();
@@ -318,7 +318,7 @@ public class StorageManager : IStorageManager
         }
     }
 
-    private void UpdateHash(IBackendStorageTransaction transact, string key, IReadOnlyDictionary<string, string?> values)
+    private void UpdateHash(IBackendStorageTransaction transact, string key, IDictionary<string, string?> values)
     {
         foreach (var val in values)
         {
@@ -333,7 +333,7 @@ public class StorageManager : IStorageManager
         }
     }
 
-    private void ReplaceHash(IBackendStorageTransaction transact, string key, IReadOnlyDictionary<string, string> values)
+    private void ReplaceHash(IBackendStorageTransaction transact, string key, IDictionary<string, string> values)
     {
         transact.KeyDelete(key);
 

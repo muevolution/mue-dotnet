@@ -34,12 +34,12 @@ public static class Json
         return JsonConvert.DeserializeObject<T>(json, JsonConfig);
     }
 
-    public static IReadOnlyDictionary<string, string> ToFlatDictionary<T>(T obj)
+    public static IDictionary<string, string> ToFlatDictionary<T>(T obj)
     {
         return Deserialize<Dictionary<string, string>>(Serialize(obj))!;
     }
 
-    public static T FromFlatDictionary<T>(IReadOnlyDictionary<string, string> dict)
+    public static T FromFlatDictionary<T>(IEnumerable<KeyValuePair<string, string>> dict)
     {
         return Deserialize<T>(Serialize(dict))!;
     }

@@ -1,4 +1,5 @@
-﻿using System.Reactive.Linq;
+﻿using System.Collections.ObjectModel;
+using System.Reactive.Linq;
 
 namespace Mue.Server.Core.Objects;
 
@@ -12,7 +13,7 @@ public abstract class GameObject<MD> : IGameObject<MD> where MD : ObjectMetadata
     public bool IsDestroyed { get; protected set; }
     public MD Meta { get; protected set; }
     public ObjectMetadata MetaBasic => Meta;
-    public IReadOnlyDictionary<string, string> MetaDictionary => Meta.ToDictionary();
+    public IReadOnlyDictionary<string, string> MetaDictionary => new ReadOnlyDictionary<string, string>(Meta.ToDictionary());
 
     protected GameObject(IWorld world, GameObjectType objType, MD meta, ObjectId? id = null)
     {
@@ -60,7 +61,7 @@ public abstract class GameObject<MD> : IGameObject<MD> where MD : ObjectMetadata
         return _world.StorageManager.SetProp(this.Id, path, value);
     }
 
-    public Task<bool> SetProps(IReadOnlyDictionary<string, PropValue> values)
+    public Task<bool> SetProps(IDictionary<string, PropValue> values)
     {
         return _world.StorageManager.SetProps(this.Id, values);
     }

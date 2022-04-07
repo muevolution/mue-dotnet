@@ -12,12 +12,12 @@ public class DynamicDictionary : DynamicObject
         _dictionary = new Dictionary<string, object?>();
     }
 
-    public DynamicDictionary(IReadOnlyDictionary<string, object?> root)
+    public DynamicDictionary(IDictionary<string, object?> root)
     {
         _dictionary = new Dictionary<string, object?>(root);
     }
 
-    public static DynamicDictionary From<T1, T2>(IReadOnlyDictionary<T1, T2> root)
+    public static DynamicDictionary From<T1, T2>(IDictionary<T1, T2> root)
     {
         return new DynamicDictionary(root.ToDictionary(k => k.Key?.ToString()!, v => (object?)v.Value));
     }

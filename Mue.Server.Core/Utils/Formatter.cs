@@ -10,7 +10,7 @@ public record FormattedMessage(string Message)
 
 public interface IWorldFormatter
 {
-    FormattedMessage Format(string message, IReadOnlyDictionary<string, string> args);
+    FormattedMessage Format(string message, IDictionary<string, string> args);
 }
 
 public class Formatter : IWorldFormatter
@@ -48,7 +48,7 @@ public class Formatter : IWorldFormatter
         }
     }
 
-    public FormattedMessage Format(string message, IReadOnlyDictionary<string, string> args)
+    public FormattedMessage Format(string message, IDictionary<string, string> args)
     {
         // TODO: Memoize this by message
         var tpl = _hb.Compile(message);

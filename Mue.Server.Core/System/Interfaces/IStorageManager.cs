@@ -11,7 +11,7 @@ public interface IStorageManager
     Task<PropValue> GetProp(ObjectId owner, string path);
     Task<IReadOnlyDictionary<string, PropValue>> GetProps(ObjectId owner);
     Task<bool> SetProp(ObjectId owner, string path, PropValue value);
-    Task<bool> SetProps(ObjectId owner, IReadOnlyDictionary<string, PropValue> values);
+    Task<bool> SetProps(ObjectId owner, IDictionary<string, PropValue> values);
     Task<IEnumerable<ObjectId>> GetContents(ObjectId owner, GameObjectType? type = null);
     Task<bool> ReparentObject(ObjectId objectId, ObjectId newParent, ObjectId? oldParent = null);
     Task<bool> MoveObject(ObjectId objectId, ObjectId newLocation, ObjectId? oldLocation = null);
