@@ -12,7 +12,7 @@ public partial class BuiltinCommands
         IGameObject? target;
         if (!String.IsNullOrWhiteSpace(command.Args))
         {
-            var targetId = await player.ResolveTarget(command.Args);
+            var targetId = await player.ResolveTarget(command.Args, true);
             target = await _world.GetObjectById(targetId);
         }
         else

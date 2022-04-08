@@ -37,7 +37,7 @@ public partial class BuiltinCommands
             return;
         }
 
-        var targetObjId = await player.ResolveTarget(target);
+        var targetObjId = await player.ResolveTarget(target, true);
         var targetObj = await _world.GetObjectById(targetObjId);
         if (targetObj == null)
         {
@@ -78,7 +78,7 @@ public partial class BuiltinCommands
             return;
         }
 
-        var targetObjId = await player.ResolveTarget(target);
+        var targetObjId = await player.ResolveTarget(target, true);
         var targetObj = await _world.GetObjectById(targetObjId);
         if (targetObj == null)
         {

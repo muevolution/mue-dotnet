@@ -157,7 +157,7 @@ public class GamePlayer : Container<PlayerMetadata>
                     return targetObj.Id;
                 }
             }
-            catch (Exception)
+            catch (IllegalObjectIdConstructorException)
             {
                 // Swallow
                 // TODO: We should either refactor the test or handle specific exception only

@@ -47,6 +47,7 @@ public partial class BuiltinCommands : IBuiltinCommands, IDisposable
     protected const string MSG_NOTFOUND_LOCATION = "Could not find the specified location.";
     protected const string MSG_NOTFOUND_PLAYER = "I couldn't find who you were talking about.";
     protected const string MSG_NOTFOUND_ENTITY = "I couldn't find what you were talking about.";
+    protected const string MSG_NOTOWNER = "That does not belong to you.";
 
     private ILogger<BuiltinCommands> _logger;
     private IWorld _world;
