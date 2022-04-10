@@ -92,12 +92,12 @@ public class ContainerTests
         _sys.StorageManager.Setup(s => s.GetContents(objId, null)).ReturnsAsync(contents);
 
         _sys.StorageManager.Setup(s => s.MoveObjects(contents, locationId, objId)).ReturnsAsync(true);
-        _sys.World.Setup(s => s.GetObjectById(testPlayerId, null)).ReturnsAsync(testPlayer.Object);
-        _sys.World.Setup(s => s.GetObjectById(testItemId, null)).ReturnsAsync(testItem.Object);
+        _sys.World.Setup(s => s.GetObjectsById(contents)).ReturnsAsync(new[] { testPlayer.Object, testItem.Object });
 
         var actual = await obj.Destroy();
         Assert.True(actual);
 
+        _sys.StorageManager.Verify(v => v.MoveObjects(contents, locationId, objId));
         testPlayer.Verify(v => v.MoveFinish(locationId, objId));
         testItem.Verify(v => v.MoveFinish(locationId, objId));
     }
