@@ -41,14 +41,6 @@ public delegate Task<Unit> ConsumeUpdate(ObjectUpdate update);
 
 public partial class BuiltinCommands : IBuiltinCommands, IDisposable
 {
-    protected const string MSG_NO_TARGET = "I don't know what you mean.";
-    protected const string MSG_NOTFOUND_PARENT = "Could not find the specified parent.";
-    protected const string MSG_NOTFOUND_ACTION = "Could not find the specified action.";
-    protected const string MSG_NOTFOUND_LOCATION = "Could not find the specified location.";
-    protected const string MSG_NOTFOUND_PLAYER = "I couldn't find who you were talking about.";
-    protected const string MSG_NOTFOUND_ENTITY = "I couldn't find what you were talking about.";
-    protected const string MSG_NOTOWNER = "That does not belong to you.";
-
     private ILogger<BuiltinCommands> _logger;
     private IWorld _world;
     private List<CommandItem> _cachedCommands;

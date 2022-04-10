@@ -30,6 +30,8 @@ public class GameScript : GameObject
 
     protected GameScript(IWorld world, ObjectMetadata meta, ObjectId? id = null) : base(world, GameObjectType.Script, meta, id) { }
 
+    // TODO: Reparent: Parent should always be owner
+
     public override async Task<bool> Invalidate()
     {
         var result = await base.Invalidate();

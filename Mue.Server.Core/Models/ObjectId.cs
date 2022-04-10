@@ -56,7 +56,7 @@ public record ObjectId
         {
             throw new IllegalObjectIdConstructorException($"Invalid object type {a[0]}", anyId);
         }
-        else if (checkType.HasValue && ObjectType != checkType.Value)
+        else if (checkType != null && ObjectType != checkType.Value)
         {
             throw new IllegalObjectIdConstructorException($"Object ID {anyId} does not match requested type {checkType}", anyId);
         }

@@ -21,6 +21,12 @@ public partial class BuiltinCommands
             _ => GameObjectType.Invalid
         };
 
+        if (type == GameObjectType.Invalid)
+        {
+            await _world.PublishMessage(MSG_INVALID_CMD, player);
+            return;
+        }
+
         if (!String.IsNullOrEmpty(command.Args))
         {
             var full = command.Args;
@@ -50,14 +56,14 @@ public partial class BuiltinCommands
 
         if (!String.IsNullOrEmpty(targetParent))
         {
-            var result = await player.ResolveTarget(targetParent, true);
+            var result = await player.ResolveTarget(targetParent);
             if (result == null)
             {
                 await _world.PublishMessage(MSG_NOTFOUND_PARENT, player);
                 return;
             }
 
-            if (GameObjectConsts.AllContainerTypes.Contains(result.ObjectType))
+            if (GameObjectConsts.ParentTypes[type].Contains(result.ObjectType))
             {
                 parent = await _world.GetObjectById(result);
             }
@@ -79,21 +85,21 @@ public partial class BuiltinCommands
                     parent = await _world.GetRootRoom();
                     break;
                 case GameObjectType.Room:
-                    parent = await _world.GetObjectById(player.Location);
+                    parent = await _world.GetRootRoom();
                     break;
             }
         }
 
         if (!String.IsNullOrEmpty(targetLocation))
         {
-            var result = await player.ResolveTarget(targetLocation, true);
+            var result = await player.ResolveTarget(targetLocation);
             if (result == null)
             {
                 await _world.PublishMessage(MSG_NOTFOUND_LOCATION, player);
                 return;
             }
 
-            if (GameObjectConsts.AllContainerTypes.Contains(result.ObjectType))
+            if (GameObjectConsts.LocationTypes[type].Contains(result.ObjectType))
             {
                 location = await _world.GetObjectById(result);
             }
@@ -111,6 +117,9 @@ public partial class BuiltinCommands
                 case GameObjectType.Player:
                     location = await _world.GetStartRoom();
                     break;
+                case GameObjectType.Room:
+                    // Room locations are option
+                    break;
                 default:
                     location = player;
                     break;
@@ -123,15 +132,10 @@ public partial class BuiltinCommands
             switch (type)
             {
                 case GameObjectType.Action:
-                    newObj = await GameAction.Create(_world, name, player.Id, location.Id);
+                    newObj = await GameAction.Create(_world, name, player.Id, location?.Id);
                     break;
                 case GameObjectType.Item:
-                    if (parent == null)
-                    {
-                        await _world.PublishMessage("Error creating item. No parent found. Please contact an admin.", player);
-                        return;
-                    }
-                    newObj = await GameItem.Create(_world, name, player.Id, location.Id);
+                    newObj = await GameItem.Create(_world, name, player.Id, location?.Id);
                     break;
                 case GameObjectType.Player:
                     if (String.IsNullOrWhiteSpace(targetPassword))
@@ -144,15 +148,10 @@ public partial class BuiltinCommands
                         await _world.PublishMessage("Error creating player. No parent found. Please contact an admin.", player);
                         return;
                     }
-                    if (parent.ObjectType != GameObjectType.Room)
-                    {
-                        await _world.PublishMessage("Error creating player. Parent is not a room.", player);
-                        return;
-                    }
 
                     try
                     {
-                        newObj = await _world.CommandProcessor.RegisterPlayer(name, targetPassword, player.Id, parent.Id, location.Id);
+                        newObj = await _world.CommandProcessor.RegisterPlayer(name, targetPassword, player.Id, parent.Id, location?.Id);
                     }
                     catch (CommandException e)
                     {
@@ -167,21 +166,11 @@ public partial class BuiltinCommands
                         await _world.PublishMessage("Error creating room. No parent found. Please contact an admin.", player);
                         return;
                     }
-                    if (parent.ObjectType != GameObjectType.Room)
-                    {
-                        await _world.PublishMessage("Error creating room. Parent is not a room.", player);
-                        return;
-                    }
-                    if (location.ObjectType != GameObjectType.Room)
-                    {
-                        await _world.PublishMessage("Error creating room. Location is not a room.", player);
-                        return;
-                    }
 
-                    newObj = await GameRoom.Create(_world, name, player.Id, parent.Id, location.Id);
+                    newObj = await GameRoom.Create(_world, name, player.Id, parent.Id, location?.Id);
                     break;
                 case GameObjectType.Script:
-                    newObj = await GameScript.Create(_world, name, player.Id, location.Id);
+                    newObj = await GameScript.Create(_world, name, player.Id, location?.Id);
                     break;
             }
 

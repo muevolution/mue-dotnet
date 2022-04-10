@@ -69,7 +69,7 @@ public partial class BuiltinCommands
     {
         var propMgr = new ObjectIdPropListHelper(player, WatchFor_ListPropPath);
         var interestedPlayerIds = await propMgr.All();
-        var interestedPlayers = (await Task.WhenAll(interestedPlayerIds.Select(s => _world.GetObjectById<GamePlayer>(s)))).WhereNotNull().ToList();
+        var interestedPlayers = (await _world.GetObjectsById(interestedPlayerIds)).WhereNotNull().ToList();
 
         if (interestedPlayers.Count > 0)
         {
@@ -144,7 +144,7 @@ public partial class BuiltinCommands
 
         var onlinePlayers = await _world.GetConnectedPlayerIds();
         var interestedOnlinePlayerIds = onlinePlayers.Where(w => interestedPlayerIds.Contains(w));
-        var interestedOnlinePlayers = (await Task.WhenAll(interestedOnlinePlayerIds.Select(s => _world.GetObjectById<GamePlayer>(s)))).WhereNotNull().ToList();
+        var interestedOnlinePlayers = (await _world.GetObjectsById(interestedOnlinePlayerIds)).WhereNotNull().ToList();
 
         if (interestedOnlinePlayers.Count > 0)
         {

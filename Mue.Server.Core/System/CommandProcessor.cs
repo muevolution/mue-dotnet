@@ -192,7 +192,7 @@ public class CommandProcessor : ICommandProcessor
 
     private async Task<bool> RunActionCommands(GamePlayer player, LocalCommand command)
     {
-        var actionId = await player.Find<GameAction>(command.Command);
+        var actionId = await player.ResolveAction(command.Command);
         var action = await _world.GetObjectById<GameAction>(actionId);
 
         if (action == null || action.Target == null)

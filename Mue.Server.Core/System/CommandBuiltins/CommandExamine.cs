@@ -9,10 +9,11 @@ public partial class BuiltinCommands
     {
         var output = new StringBuilder();
 
-        IGameObject? target;
-        if (!String.IsNullOrWhiteSpace(command.Args))
+        IGameObject? target = null;
+        string? targetText = command.GetTarget();
+        if (targetText != null)
         {
-            var targetId = await player.ResolveTarget(command.Args, true);
+            var targetId = await player.ResolveTarget(targetText);
             target = await _world.GetObjectById(targetId);
         }
         else

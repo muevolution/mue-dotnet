@@ -13,20 +13,20 @@ public enum GameObjectType
 public static class GameObjectConsts
 {
     private static readonly IReadOnlyDictionary<GameObjectType, string> GameObjectTypes = new Dictionary<GameObjectType, string> {
-            {GameObjectType.Room, "r"},
-            {GameObjectType.Player, "p"},
-            {GameObjectType.Item, "i"},
-            {GameObjectType.Script, "s"},
-            {GameObjectType.Action, "a"},
-        };
+        {GameObjectType.Room, "r"},
+        {GameObjectType.Player, "p"},
+        {GameObjectType.Item, "i"},
+        {GameObjectType.Script, "s"},
+        {GameObjectType.Action, "a"},
+    };
 
     private static readonly IReadOnlyDictionary<Type, GameObjectType> GameObjectTypeTypes = new Dictionary<Type, GameObjectType> {
-            {typeof(GameRoom), GameObjectType.Room},
-            {typeof(GamePlayer), GameObjectType.Player},
-            {typeof(GameItem), GameObjectType.Item},
-            {typeof(GameScript), GameObjectType.Script},
-            {typeof(GameAction), GameObjectType.Action},
-        };
+        {typeof(GameRoom), GameObjectType.Room},
+        {typeof(GamePlayer), GameObjectType.Player},
+        {typeof(GameItem), GameObjectType.Item},
+        {typeof(GameScript), GameObjectType.Script},
+        {typeof(GameAction), GameObjectType.Action},
+    };
 
     private static readonly IReadOnlyDictionary<string, GameObjectType> GameObjectTypeStrings = GameObjectTypes.ToDictionary(k => k.Value, k => k.Key);
     public static readonly IEnumerable<string> GameObjectValidTypePrefixes = GameObjectTypes.Values;
@@ -54,25 +54,38 @@ public static class GameObjectConsts
     }
 
     public static readonly GameObjectType[] AllGameObjectTypes = {
-            GameObjectType.Room,
-            GameObjectType.Player,
-            GameObjectType.Item,
-            GameObjectType.Script,
-            GameObjectType.Action,
-        };
+        GameObjectType.Room,
+        GameObjectType.Player,
+        GameObjectType.Item,
+        GameObjectType.Script,
+        GameObjectType.Action,
+    };
 
     public static readonly GameObjectType[] AllContainerTypes = {
-            GameObjectType.Room,
-            GameObjectType.Player,
-            GameObjectType.Item,
-        };
+        GameObjectType.Room,
+        GameObjectType.Player,
+        GameObjectType.Item,
+    };
 
-    public static readonly GameObjectType[] AllParentTypes = AllContainerTypes;
+    public static readonly Dictionary<GameObjectType, GameObjectType[]> LocationTypes = new Dictionary<GameObjectType, GameObjectType[]> {
+        {GameObjectType.Room, new [] {GameObjectType.Room}},
+        {GameObjectType.Player, new [] {GameObjectType.Room, GameObjectType.Item}},
+        {GameObjectType.Item, AllContainerTypes},
+        {GameObjectType.Script, AllContainerTypes},
+        {GameObjectType.Action, AllContainerTypes},
+    };
+    public static readonly Dictionary<GameObjectType, GameObjectType[]> ParentTypes = new Dictionary<GameObjectType, GameObjectType[]> {
+        {GameObjectType.Room, new [] {GameObjectType.Room}},
+        {GameObjectType.Player, new [] {GameObjectType.Room}},
+        {GameObjectType.Item, new [] {GameObjectType.Player}},
+        {GameObjectType.Script, new [] {GameObjectType.Player}},
+        {GameObjectType.Action, new [] {GameObjectType.Player}},
+    };
 
     public static readonly GameObjectType[] AllActionTargets = {
-            GameObjectType.Room,
-            GameObjectType.Script,
-        };
+        GameObjectType.Room,
+        GameObjectType.Script,
+    };
 }
 
 public static class GameObjectExtensions

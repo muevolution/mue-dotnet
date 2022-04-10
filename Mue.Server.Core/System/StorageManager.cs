@@ -178,7 +178,7 @@ public class StorageManager : IStorageManager
         var contents = await _storage.SetMembers(StorageManagerKeys.GetContentsKeyStructure(owner));
         var contentsIds = contents.Select(s => new ObjectId(s));
 
-        if (!type.HasValue)
+        if (type == null)
         {
             return contentsIds;
         }

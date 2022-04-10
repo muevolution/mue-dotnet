@@ -81,7 +81,7 @@ public class DefaultScriptTests
             Assert.Equal("Connected players: Kauko", im.Message);
             Assert.Null(im.Meta);
             Assert.Null(im.ExtendedContent);
-            Assert.False(im.ExtendedFormat.HasValue);
+            Assert.Null(im.ExtendedFormat);
             Assert.Equal(PlayerIdStr, im.Source);
             Assert.Equal(ScriptIdStr, im.Script);
 

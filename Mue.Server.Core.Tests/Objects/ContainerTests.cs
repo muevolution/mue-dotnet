@@ -1,3 +1,5 @@
+using Mue.Server.Core;
+
 public class ContainerTests
 {
     private SystemMock _sys;
@@ -22,20 +24,19 @@ public class ContainerTests
         Assert.Equal(expected, actual);
     }
 
-    // Find [just calls FindIn, overrides need to be tested]
-
     // FindIn
 
     [Theory]
-    [InlineData(null, null, null)]
-    [InlineData(null, "", null)]
-    [InlineData(null, "NoWork", null)]
-    [InlineData("p:test", "sampleplayer", null)]
-    [InlineData("p:test", "sampleplayer", GameObjectType.Player)]
-    [InlineData(null, "sampleplayer", GameObjectType.Item)]
-    [InlineData("i:inner", "child item", null)]
-    [InlineData(null, "child item", GameObjectType.Player)]
-    [InlineData("i:inner", "child item", GameObjectType.Item)]
+    [InlineData(null, null, null)] // null returns null
+    [InlineData(null, "", null)] // empty string returns null
+    [InlineData(null, "NoWork", null)] // random string returns null
+    [InlineData("p:test", "sampleplayer", null)] // player returns id <any>
+    [InlineData("p:test", "sampleplayer", GameObjectType.Player)] // player returns id <player>
+    [InlineData(null, "sampleplayer", GameObjectType.Item)] // player returns null <wrong>
+    [InlineData("i:test", "testitem", null)] // item returns id
+    [InlineData("i:test", "testitem", GameObjectType.Item)] // item returns id <item>
+    [InlineData(null, "testitem", GameObjectType.Room)] // item returns null <wrong>
+    [InlineData(null, "child item", null)] // child item returns null
     public async Task FindIn(string expectedId, string term, GameObjectType? type = null)
     {
         var testPlayerId = new ObjectId("p:test");
@@ -67,6 +68,11 @@ public class ContainerTests
         var expected = expectedId != null ? new ObjectId(expectedId) : null;
         Assert.Equal(expected, actual);
     }
+
+    // FindActionIn
+
+    [Fact(Skip = "TODO")]
+    public void FindActionIn() { }
 
     // Destroy
 

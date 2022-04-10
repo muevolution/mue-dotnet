@@ -107,12 +107,7 @@ public abstract class GameObject<MD> : IGameObject<MD> where MD : ObjectMetadata
         return updatedMeta && updatedIndex;
     }
 
-    public virtual Task<ReparentResult?> Reparent(ObjectId newParent)
-    {
-        return Reparent(newParent, GameObjectConsts.AllContainerTypes);
-    }
-
-    protected async Task<ReparentResult?> Reparent(ObjectId newParent, IEnumerable<GameObjectType> restrictedTypes)
+    public virtual async Task<ReparentResult?> Reparent(ObjectId newParent)
     {
         if (newParent == null)
         {
@@ -120,17 +115,8 @@ public abstract class GameObject<MD> : IGameObject<MD> where MD : ObjectMetadata
             return null;
         }
 
-        // Check requested type restrictions
-        if (restrictedTypes != null)
-        {
-            if (!restrictedTypes.Contains(newParent.ObjectType))
-            {
-                throw new InvalidGameObjectParentException(newParent);
-            }
-        }
-
         // Not allowed to be outside of an allowed parent type no matter what
-        if (!GameObjectConsts.AllParentTypes.Contains(newParent.ObjectType))
+        if (!GameObjectConsts.ParentTypes[ObjectType].Contains(newParent.ObjectType))
         {
             throw new InvalidGameObjectParentException(newParent);
         }
@@ -158,12 +144,7 @@ public abstract class GameObject<MD> : IGameObject<MD> where MD : ObjectMetadata
         return output;
     }
 
-    public virtual Task<MoveResult?> Move(ObjectId newLocation)
-    {
-        return Move(newLocation, GameObjectConsts.AllContainerTypes);
-    }
-
-    protected async Task<MoveResult?> Move(ObjectId newLocation, IEnumerable<GameObjectType> restrictedTypes)
+    public virtual async Task<MoveResult?> Move(ObjectId newLocation)
     {
         if (newLocation == null)
         {
@@ -171,17 +152,8 @@ public abstract class GameObject<MD> : IGameObject<MD> where MD : ObjectMetadata
             return null;
         }
 
-        // Check requested type restrictions
-        if (restrictedTypes != null)
-        {
-            if (!restrictedTypes.Contains(newLocation.ObjectType))
-            {
-                throw new InvalidGameObjectLocationException(newLocation);
-            }
-        }
-
         // Not allowed to be outside of an allowed container type no matter what
-        if (!GameObjectConsts.AllContainerTypes.Contains(newLocation.ObjectType))
+        if (!GameObjectConsts.LocationTypes[ObjectType].Contains(newLocation.ObjectType))
         {
             throw new InvalidGameObjectLocationException(newLocation);
         }

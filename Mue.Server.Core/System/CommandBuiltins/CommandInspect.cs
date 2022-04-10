@@ -22,8 +22,7 @@ public partial class BuiltinCommands
 
         Func<IEnumerable<ObjectId>, Task<string>> ContentsToStr = async (contents) =>
         {
-            var contentsObj = await Task.WhenAll(contents.Select(s => _world.GetObjectById(s)));
-            var contentsName = contentsObj.WhereNotNull().Select(s => s.Name);
+            var contentsName = (await _world.GetObjectsById(contents)).Select(s => s?.Name ?? "?");
             return String.Join(", ", contentsName);
         };
 
@@ -51,6 +50,9 @@ public partial class BuiltinCommands
             {
                 output.AppendLine("Room contents: none");
             }
+
+            output.AppendLine($"Room location: {location.Location}");
+            output.AppendLine($"Room parent: {location.Parent}");
         }
         else
         {

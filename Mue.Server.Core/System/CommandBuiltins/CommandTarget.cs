@@ -29,28 +29,28 @@ public partial class BuiltinCommands
             return;
         }
 
-        var actionObjId = await player.ResolveTarget(targetAction);
-        var actionObj = await _world.GetObjectById<GameAction>(actionObjId);
-        if (actionObj == null)
+        var actionId = await player.ResolveTarget(targetAction);
+        var action = await _world.GetObjectById<GameAction>(actionId);
+        if (action == null)
         {
             await _world.PublishMessage(MSG_NOTFOUND_ACTION, player);
             return;
         }
 
-        var locationObjId = await player.ResolveTarget(targetLocation);
-        var locationObj = await _world.GetObjectById(locationObjId);
-        if (locationObj == null)
+        var locationId = await player.ResolveTarget(targetLocation);
+        var location = await _world.GetObjectById(locationId);
+        if (location == null)
         {
             await _world.PublishMessage(MSG_NOTFOUND_LOCATION, player);
             return;
         }
-        if (!GameObjectConsts.AllActionTargets.Contains(locationObj.ObjectType))
+        if (!GameObjectConsts.AllActionTargets.Contains(location.ObjectType))
         {
-            await _world.PublishMessage($"Location [{locationObj.Id}] is not a room or a script.", player);
+            await _world.PublishMessage($"Location [{location.Id}] is not a room or a script.", player);
             return;
         }
 
-        await actionObj.SetTarget(locationObj.Id);
-        await _world.PublishMessage($"Action {actionObj.Name} [{actionObj.Id}] has been targeted at {locationObj.Name} [{locationObj.Id}].", player);
+        await action.SetTarget(location.Id);
+        await _world.PublishMessage($"Action {action.Name} [{action.Id}] has been targeted at {location.Name} [{location.Id}].", player);
     }
 }

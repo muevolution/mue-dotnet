@@ -152,7 +152,7 @@ public class World : IWorld
             return null;
         }
 
-        if (assertType.HasValue && id.ObjectType != assertType)
+        if (assertType != null && id.ObjectType != assertType)
         {
             // TODO: Should this return null?
             return null;

@@ -41,6 +41,11 @@ public class GamePlayerTests
     [Fact(Skip = "TODO")]
     public void Find() { }
 
+    // ResolveAction
+
+    [Fact(Skip = "TODO")]
+    public void ResolveAction() { }
+
     // ResolveTarget
 
     [Fact(Skip = "TODO")]

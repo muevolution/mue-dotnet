@@ -36,34 +36,5 @@ public class GameRoom : Container
         return world.ObjectCache.StandardImitate<GameRoom>(id, (meta) => Task.FromResult(new GameRoom(world, meta, id)));
     }
 
-    protected GameRoom(IWorld world, ObjectMetadata meta, ObjectId? id = null) : base(world, GameObjectType.Room, meta, id)
-    {
-        _useDeepSearch = true;
-    }
-
-    public override async Task<ObjectId?> Find(string term, GameObjectType? type = null)
-    {
-        // TODO: This method needs optimization/caching
-
-        var firstSearch = await FindIn(term, type);
-        if (firstSearch != null)
-        {
-            return firstSearch;
-        }
-
-        // Now search the parent tree
-        var current = await _world.GetObjectById<GameRoom>(this.Parent);
-        while (current != null && !current.IsParentRoot)
-        {
-            var action = await current.FindIn(term, type);
-            if (action != null)
-            {
-                return action;
-            }
-
-            current = await _world.GetObjectById<GameRoom>(current.Parent);
-        }
-
-        return null;
-    }
+    protected GameRoom(IWorld world, ObjectMetadata meta, ObjectId? id = null) : base(world, GameObjectType.Room, meta, id) { }
 }

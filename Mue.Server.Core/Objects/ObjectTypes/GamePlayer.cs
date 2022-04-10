@@ -16,7 +16,7 @@ public class GamePlayer : Container<PlayerMetadata>
         {
             Name = name,
             Creator = creator,
-            Parent = creator,
+            Parent = parent,
             Location = location ?? parent ?? null,
             PasswordHash = passwordHash,
         });
@@ -45,15 +45,7 @@ public class GamePlayer : Container<PlayerMetadata>
         return world.ObjectCache.StandardImitate<GamePlayer, PlayerMetadata>(id, (meta) => Task.FromResult(new GamePlayer(world, meta, id)));
     }
 
-    protected GamePlayer(IWorld world, PlayerMetadata meta, ObjectId? id = null) : base(world, GameObjectType.Player, meta, id)
-    {
-        _useDeepSearch = true;
-    }
-
-    public override Task<ReparentResult?> Reparent(ObjectId newParent)
-    {
-        return base.Reparent(newParent, new[] { GameObjectType.Room });
-    }
+    protected GamePlayer(IWorld world, PlayerMetadata meta, ObjectId? id = null) : base(world, GameObjectType.Player, meta, id) { }
 
     public override async Task<MoveResult?> Move(ObjectId newLocation)
     {
@@ -84,73 +76,79 @@ public class GamePlayer : Container<PlayerMetadata>
         return result;
     }
 
-    public override Task<ObjectId?> Find(string term, GameObjectType? type = null)
+    /// <summary>Action search, for CommandProcessor.</summary>
+    public async Task<ObjectId?> ResolveAction(string term)
     {
-        return Find(term, type, false);
-    }
+        // TODO: This can be sorely optimized, starting with caching which rooms we've already searched through
+        // Even better would be to build a full search tree once and invalidate it when the player moves
 
-    public async Task<ObjectId?> Find(string term, GameObjectType? type = null, bool searchLoc = false)
-    {
-        // Search on player first
-        var firstSearch = await FindIn(term, type);
+        // Search on own object contents
+        var firstSearch = await FindActionIn(term);
         if (firstSearch != null)
         {
             return firstSearch;
         }
 
-        // Now search the player tree
-        IContainer? parent = null;
-        if (type.HasValue && type == GameObjectType.Action)
+        // Search straight up the parent tree to the root (players can only be parented to rooms)
+        var parentSearch = await SearchUpParents(term, Parent);
+        if (parentSearch != null)
         {
-            parent = await _world.GetObjectById(Parent) as IContainer;
-            if (parent != null)
+            return parentSearch;
+        }
+
+        // Search in our current location
+        var locationObj = await _world.GetObjectById(Location) as IContainer;
+        if (locationObj != null)
+        {
+            var action = await locationObj.FindActionIn(term, true);
+            if (action != null)
             {
-                var pRes = await parent.Find(term, type);
-                if (pRes != null)
+                return action;
+            }
+
+            // Search our current location's parent tree (if our location is a room)
+            if (locationObj is GameRoom)
+            {
+                var locationRoomObj = (GameRoom)locationObj;
+                var locationParentSearch = await SearchUpParents(term, locationRoomObj.Parent);
+                if (locationParentSearch != null)
                 {
-                    return pRes;
+                    return locationParentSearch;
                 }
             }
         }
 
-        // Now search the room tree
-        if ((type.HasValue && type == GameObjectType.Action) || searchLoc)
+        // Search the root room
+        var rootRoom = await _world.GetRootRoom();
+        var rootSearch = await rootRoom.FindActionIn(term);
+        if (rootSearch != null)
         {
-            var location = await _world.GetObjectById(Location) as IContainer;
-            if (location == null || location == parent)
-            {
-                // Already searched this tree
-                return null;
-            }
-
-            return await location.FindIn(term, type);
+            return rootSearch;
         }
 
+        // Not found
         return null;
     }
 
-    /// <summary>Arbitrary target search, usually for a command.</summary>
-    public async Task<ObjectId?> ResolveTarget(string target, bool absolute = false)
+    /// <summary>Arbitrary target search, usually for a command argument.</summary>
+    public async Task<ObjectId?> ResolveTarget(string term)
     {
-        if (target == "me")
+        switch (term)
         {
-            return Id;
-        }
-        else if (target == "here")
-        {
-            return Location;
-        }
-        else if (target == "parent")
-        {
-            return Parent;
+            case "me":
+                return Id;
+            case "here":
+                return Location;
+            case "parent":
+                return Parent;
         }
 
-        if (absolute)
+        // Try direct addressing first
+        if (ObjectId.LooksLikeAnId(term))
         {
-            // Try direct addressing first
             try
             {
-                var targetId = new ObjectId(target);
+                var targetId = new ObjectId(term);
                 var targetObj = await _world.GetObjectById(targetId);
                 if (targetObj != null)
                 {
@@ -162,15 +160,34 @@ public class GamePlayer : Container<PlayerMetadata>
                 // Swallow
                 // TODO: We should either refactor the test or handle specific exception only
             }
+        }
 
-            var targetPlayer = await _world.GetPlayerByName(target);
-            if (targetPlayer != null)
+        var targetPlayer = await _world.GetPlayerByName(term);
+        if (targetPlayer != null)
+        {
+            return targetPlayer.Id;
+        }
+
+        // Search on own object contents
+        var firstSearch = await FindIn(term);
+        if (firstSearch != null)
+        {
+            return firstSearch;
+        }
+
+        // Search in our current location
+        var locationObj = await _world.GetObjectById(Location) as IContainer;
+        if (locationObj != null)
+        {
+            var locationSearch = await locationObj.FindIn(term);
+            if (locationSearch != null)
             {
-                return targetPlayer.Id;
+                return locationSearch;
             }
         }
 
-        return await Find(target, null, true);
+        // Not found
+        return null;
     }
 
     // User stuff
@@ -203,5 +220,28 @@ public class GamePlayer : Container<PlayerMetadata>
         }
 
         return Security.ComparePasswords(Meta.PasswordHash, password);
+    }
+
+    private async Task<ObjectId?> SearchUpParents(string term, ObjectId startingPoint)
+    {
+        var current = await _world.GetObjectById<GameRoom>(startingPoint);
+        while (current != null)
+        {
+            var action = await current.FindActionIn(term);
+            if (action != null)
+            {
+                return action;
+            }
+
+            if (current.IsParentRoot)
+            {
+                // Top of parent tree
+                break;
+            }
+
+            current = await _world.GetObjectById<GameRoom>(current.Parent);
+        }
+
+        return null;
     }
 }

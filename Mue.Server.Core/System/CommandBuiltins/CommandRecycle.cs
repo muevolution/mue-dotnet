@@ -1,10 +1,7 @@
-using System.Text;
-
 namespace Mue.Server.Core.System.CommandBuiltins;
 
 public partial class BuiltinCommands
 {
-    private const string COMMON_PARAM_TARGET = "target";
     private static readonly GameObjectType[] ALLOWED_RECYCLE_TYPES = new GameObjectType[] { GameObjectType.Action, GameObjectType.Item, GameObjectType.Room, GameObjectType.Script };
 
     [BuiltinCommand("$recycle")]
@@ -13,13 +10,10 @@ public partial class BuiltinCommands
         ObjectId? targetId = null;
         IGameObject? target = null;
 
-        if (!String.IsNullOrWhiteSpace(command.Args))
+        string? targetText = command.GetTarget();
+        if (targetText != null)
         {
-            targetId = await player.ResolveTarget(command.Args, true);
-        }
-        else if (command.Params?.ContainsKey(COMMON_PARAM_TARGET) ?? false)
-        {
-            targetId = await player.ResolveTarget(command.Params[COMMON_PARAM_TARGET], true);
+            targetId = await player.ResolveTarget(targetText);
         }
 
         if (targetId == null)

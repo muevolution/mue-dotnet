@@ -12,42 +12,42 @@ public partial class BuiltinCommands
     {
         // TODO: Use `$set@target key=value` syntax instead of `$set target=key:value`
 
-        string? target = null, key = null, value = null;
+        string? targetStr = null, key = null, value = null;
 
         if (!String.IsNullOrEmpty(command.Args))
         {
             var reg = SET_ARG_REGEX.Match(command.Args);
             if (reg.Groups.Count == 4)
             {
-                target = reg.Groups[1].Value;
+                targetStr = reg.Groups[1].Value;
                 key = reg.Groups[2].Value;
                 value = reg.Groups[3].Value;
             }
         }
         else if (command.Params?.Count > 0)
         {
-            target = command.Params["target"];
-            key = command.Params["key"];
-            value = command.Params["value"];
+            targetStr = command.Params[COMMON_PARAM_TARGET];
+            key = command.Params[COMMON_PARAM_KEY];
+            value = command.Params[COMMON_PARAM_VALUE];
         }
 
-        if (String.IsNullOrWhiteSpace(target) || String.IsNullOrWhiteSpace(key) || String.IsNullOrWhiteSpace(value))
+        if (String.IsNullOrWhiteSpace(targetStr) || String.IsNullOrWhiteSpace(key) || String.IsNullOrWhiteSpace(value))
         {
             await _world.PublishMessage(MSG_NO_TARGET, player);
             return;
         }
 
-        var targetObjId = await player.ResolveTarget(target, true);
-        var targetObj = await _world.GetObjectById(targetObjId);
-        if (targetObj == null)
+        var targetId = await player.ResolveTarget(targetStr);
+        var target = await _world.GetObjectById(targetId);
+        if (target == null)
         {
             await _world.PublishMessage(MSG_NOTFOUND_ENTITY, player);
             return;
         }
 
         // TODO: Make this handle numbers and lists
-        await targetObj.SetProp(key, new PropValue(value));
-        await _world.PublishMessage($"Property '{key}' was set on '{targetObj.Name}' [{targetObj.Id}]", player);
+        await target.SetProp(key, new PropValue(value));
+        await _world.PublishMessage($"Property '{key}' was set on '{target.Name}' [{target.Id}]", player);
     }
 
     [BuiltinCommand("$unset")]
@@ -55,38 +55,38 @@ public partial class BuiltinCommands
     {
         // TODO: Use `$unset@target key` syntax instead of `$unset target=key`
 
-        string? target = null, key = null;
+        string? targetStr = null, key = null;
 
         if (!String.IsNullOrEmpty(command.Args))
         {
             var reg = UNSET_ARG_REGEX.Match(command.Args);
             if (reg.Groups.Count == 3)
             {
-                target = reg.Groups[1].Value;
+                targetStr = reg.Groups[1].Value;
                 key = reg.Groups[2].Value;
             }
         }
         else if (command.Params?.Count > 0)
         {
-            target = command.Params["target"];
-            key = command.Params["key"];
+            targetStr = command.Params[COMMON_PARAM_TARGET];
+            key = command.Params[COMMON_PARAM_KEY];
         }
 
-        if (String.IsNullOrWhiteSpace(target) || String.IsNullOrWhiteSpace(key))
+        if (String.IsNullOrWhiteSpace(targetStr) || String.IsNullOrWhiteSpace(key))
         {
             await _world.PublishMessage(MSG_NO_TARGET, player);
             return;
         }
 
-        var targetObjId = await player.ResolveTarget(target, true);
-        var targetObj = await _world.GetObjectById(targetObjId);
-        if (targetObj == null)
+        var targetId = await player.ResolveTarget(targetStr);
+        var target = await _world.GetObjectById(targetId);
+        if (target == null)
         {
             await _world.PublishMessage(MSG_NOTFOUND_ENTITY, player);
             return;
         }
 
-        await targetObj.SetProp(key, new PropValue());
-        await _world.PublishMessage($"Property '{key}' was unset on '{targetObj.Name}' [{targetObj.Id}]", player);
+        await target.SetProp(key, new PropValue());
+        await _world.PublishMessage($"Property '{key}' was unset on '{target.Name}' [{target.Id}]", player);
     }
 }
