@@ -67,11 +67,7 @@ public class DynamicDictionary : DynamicObject
     public dynamic? Get(string key)
     {
         var lvk = key.ToLower();
-        if (_dictionary.ContainsKey(lvk))
-        {
-            return _dictionary[lvk];
-        }
-        return null;
+        return _dictionary.GetValueOrDefault(lvk);
     }
 
     public void Set(string key, object value)

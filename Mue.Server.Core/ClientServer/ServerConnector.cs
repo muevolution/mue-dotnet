@@ -107,8 +107,16 @@ public class ServerConnector : IClientToServer
             return new OperationResponse { Success = false, Fatal = false, Message = "You have not yet authenticated.", Code = MueCodes.UnauthenticatedError };
         }
 
-        await _world.PlayerCommand(_player, message);
-        return new OperationResponse();
+        try
+        {
+            await _world.PlayerCommand(_player, message);
+            return new OperationResponse();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "User command '{message}' threw exception", message);
+            return new OperationResponse { Success = false, Fatal = false, Message = "Exception thrown: " + e.Message, Code = MueCodes.UnknownError };
+        }
     }
 
     public async Task<OperationResponse> OnEcho(string message)

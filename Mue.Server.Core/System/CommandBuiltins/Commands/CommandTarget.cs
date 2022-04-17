@@ -2,30 +2,18 @@ namespace Mue.Server.Core.System.CommandBuiltins;
 
 public partial class BuiltinCommands
 {
-    [BuiltinCommand("$target")]
+    [BuiltinCommand("$target", CMD_REGEX_NAMELOCATION)]
     public async Task SetTarget(GamePlayer player, LocalCommand command)
     {
         string? targetAction = null, targetLocation = null;
 
-        if (!String.IsNullOrEmpty(command.Args))
-        {
-            var spl = command.Args.Split("=");
-
-            targetAction = spl[0];
-            if (spl.Length > 1)
-            {
-                targetLocation = spl[1];
-            }
-        }
-        else if (command.Params?.Count > 0)
-        {
-            targetAction = command.Params["action"];
-            targetLocation = command.Params["location"];
-        }
+        var cmdParams = command.ParseParamsFromArgs();
+        targetAction = cmdParams.GetValueOrDefault(COMMON_PARAM_NAME);
+        targetLocation = cmdParams.GetValueOrDefault(COMMON_PARAM_LOCATION);
 
         if (String.IsNullOrWhiteSpace(targetAction) || String.IsNullOrWhiteSpace(targetLocation))
         {
-            await _world.PublishMessage(MSG_NO_TARGET, player);
+            await _world.PublishMessage(MSG_NO_TARGET, player, meta: QuickReasonMeta("name|location missing"));
             return;
         }
 
@@ -33,7 +21,7 @@ public partial class BuiltinCommands
         var action = await _world.GetObjectById<GameAction>(actionId);
         if (action == null)
         {
-            await _world.PublishMessage(MSG_NOTFOUND_ACTION, player);
+            await _world.PublishMessage(MSG_NOTFOUND_ACTION, player, meta: QuickReasonMeta("action was null"));
             return;
         }
 
@@ -41,12 +29,12 @@ public partial class BuiltinCommands
         var location = await _world.GetObjectById(locationId);
         if (location == null)
         {
-            await _world.PublishMessage(MSG_NOTFOUND_LOCATION, player);
+            await _world.PublishMessage(MSG_NOTFOUND_LOCATION, player, meta: QuickReasonMeta("location was null"));
             return;
         }
         if (!GameObjectConsts.AllActionTargets.Contains(location.ObjectType))
         {
-            await _world.PublishMessage($"Location [{location.Id}] is not a room or a script.", player);
+            await _world.PublishMessage($"Location [{location.Id}] is not a room or a script.", player, meta: QuickReasonMeta("location invalid target"));
             return;
         }
 

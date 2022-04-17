@@ -4,13 +4,13 @@ public partial class BuiltinCommands
 {
     private static readonly GameObjectType[] ALLOWED_RECYCLE_TYPES = new GameObjectType[] { GameObjectType.Action, GameObjectType.Item, GameObjectType.Room, GameObjectType.Script };
 
-    [BuiltinCommand("$recycle")]
+    [BuiltinCommand("$recycle", CMD_REGEX_TARGET_WHOLE)]
     public async Task Recycle(GamePlayer player, LocalCommand command)
     {
         ObjectId? targetId = null;
         IGameObject? target = null;
 
-        string? targetText = command.GetTarget();
+        string? targetText = command.ParseParamsFromArgs().GetValueOrDefault(COMMON_PARAM_TARGET);
         if (targetText != null)
         {
             targetId = await player.ResolveTarget(targetText);

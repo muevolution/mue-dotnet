@@ -2,11 +2,11 @@ namespace Mue.Server.Core.System.CommandBuiltins;
 
 public partial class BuiltinCommands
 {
-    [BuiltinCommand("$createaction")]
-    [BuiltinCommand("$createitem")]
-    [BuiltinCommand("$createplayer")]
-    [BuiltinCommand("$createroom")]
-    [BuiltinCommand("$createscript")]
+    [BuiltinCommand("$createaction", CMD_REGEX_NAME_WHOLE, CMD_REGEX_NAMELOCATION)]
+    [BuiltinCommand("$createitem", CMD_REGEX_NAME_WHOLE, CMD_REGEX_NAMELOCATION)]
+    [BuiltinCommand("$createplayer", @"^(?<name>\D[\w\d]+) (?<password>[\S]+)$")]
+    [BuiltinCommand("$createroom", CMD_REGEX_NAME_WHOLE, CMD_REGEX_NAMELOCATION)]
+    [BuiltinCommand("$createscript", CMD_REGEX_NAME_WHOLE, CMD_REGEX_NAMELOCATION)]
     public async Task Create(GamePlayer player, LocalCommand command)
     {
         string? name = null, targetPassword = null, targetLocation = null, targetParent = null;
@@ -27,24 +27,11 @@ public partial class BuiltinCommands
             return;
         }
 
-        if (!String.IsNullOrEmpty(command.Args))
-        {
-            var full = command.Args;
-            var spl = full.Split("=");
-            name = spl[0];
-            if (spl.Length > 1)
-            {
-                targetPassword = spl[1];
-                targetLocation = spl[1];
-            }
-        }
-        else if (command.Params?.Count > 0)
-        {
-            name = command.Params["name"];
-            targetPassword = command.Params["password"];
-            targetLocation = command.Params["location"];
-            targetParent = command.Params["parent"];
-        }
+        var cmdParams = command.ParseParamsFromArgs();
+        name = cmdParams.GetValueOrDefault(COMMON_PARAM_NAME);
+        targetPassword = cmdParams.GetValueOrDefault("password");
+        targetLocation = cmdParams.GetValueOrDefault(COMMON_PARAM_LOCATION);
+        targetParent = cmdParams.GetValueOrDefault(COMMON_PARAM_PARENT);
 
         if (String.IsNullOrWhiteSpace(name))
         {

@@ -4,13 +4,13 @@ namespace Mue.Server.Core.System.CommandBuiltins;
 
 public partial class BuiltinCommands
 {
-    [BuiltinCommand("$examine")]
+    [BuiltinCommand("$examine", CMD_REGEX_TARGET_WHOLE)]
     public async Task Examine(GamePlayer player, LocalCommand command)
     {
         var output = new StringBuilder();
 
         IGameObject? target = null;
-        string? targetText = command.GetTarget();
+        string? targetText = command.ParseParamsFromArgs().GetValueOrDefault(COMMON_PARAM_TARGET);
         if (targetText != null)
         {
             var targetId = await player.ResolveTarget(targetText);

@@ -1,8 +1,9 @@
 namespace Mue.Server.Core.System.CommandBuiltins;
 
-public interface IBuiltinCommands
+public interface IBuiltinCommands : IDisposable
 {
-    ExecCommand? FindCommand(string name);
+    void Reload();
+    ExecCommandInstance? FindCommand(string name);
 
     // Normally commands are auto-discovered, but unknown is only called internally
     Task Unknown(GamePlayer player, LocalCommand command);

@@ -180,10 +180,28 @@ public class CommandProcessor : ICommandProcessor
     private async Task<bool> RunBuiltinCommands(GamePlayer player, LocalCommand command)
     {
         // Use the builtins command manager
-        var cmd = _builtinCommands.FindCommand(command.Command.ToLower());
-        if (cmd != null)
+        var targetCmd = _builtinCommands.FindCommand(command.Command.ToLower());
+        if (targetCmd != null)
         {
-            await cmd(player, command);
+            // Rewrite the prefix if needed
+            var actualCommand = command.Command;
+            var actualArgs = command.Args;
+            if (targetCmd.PrefixedCommand)
+            {
+                actualCommand = targetCmd.CommandName;
+                var postfix = command.Command.Substring(targetCmd.CommandName.Length);
+                if (actualArgs != null)
+                {
+                    actualArgs = postfix + " " + command.Args;
+                }
+            }
+
+            await targetCmd.CommandDelegate(player, command with
+            {
+                Command = actualCommand,
+                Args = actualArgs,
+                InputParser = targetCmd.InputParser != null ? targetCmd.InputParser.Match : null,
+            });
             return true;
         }
 
