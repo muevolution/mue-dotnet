@@ -34,7 +34,7 @@ class RedisPubSub : IBackendPubSub
 
     public Task Publish(string topic, string value)
     {
-        return Subscriber.PublishAsync(new RedisChannel(topic, RedisChannel.PatternMode.Auto), new RedisValue(value));
+        return Subscriber.PublishAsync(RedisPubSubUtil.GetChannel(topic), new RedisValue(value));
     }
 
     public async Task<uint> GetSubscribeCount(string topic)
@@ -45,7 +45,7 @@ class RedisPubSub : IBackendPubSub
             throw new NullReferenceException("Server was null.");
         }
 
-        return (uint)(await server.SubscriptionSubscriberCountAsync(topic));
+        return (uint)(await server.SubscriptionSubscriberCountAsync(RedisPubSubUtil.GetChannel(topic)));
     }
 
     public async Task<IEnumerable<string>> GetTopicsWildcard(string topic)
@@ -56,7 +56,7 @@ class RedisPubSub : IBackendPubSub
             throw new NullReferenceException("Server was null.");
         }
 
-        return (await server.SubscriptionChannelsAsync(topic)).Select(s => (string)s);
+        return (await server.SubscriptionChannelsAsync(RedisPubSubUtil.GetChannel(topic))).Select(s => s.ToString());
     }
 }
 
@@ -91,7 +91,7 @@ public class RedisSubscriptionToken : ISubscriptionToken, IAsyncDisposable
     {
         if (_mq == null)
         {
-            _mq = await _pubsub.SubscribeAsync(_topic);
+            _mq = await _pubsub.SubscribeAsync(RedisPubSubUtil.GetChannel(_topic));
 
             if (_syncCallback != null)
             {
@@ -116,4 +116,9 @@ public class RedisSubscriptionToken : ISubscriptionToken, IAsyncDisposable
             _mq = null;
         }
     }
+}
+
+static class RedisPubSubUtil
+{
+    public static RedisChannel GetChannel(string topic) => new RedisChannel(topic, RedisChannel.PatternMode.Auto);
 }
