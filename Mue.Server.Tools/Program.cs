@@ -21,7 +21,7 @@ static IHostBuilder CreateHostBuilder(ToolCliOptions opts) =>
         });
 
 await Parser.Default.ParseArguments<ToolCliOptions>(args)
-    .WithParsedAsync<ToolCliOptions>(async o =>
+    .WithParsedAsync(async o =>
     {
         var host = CreateHostBuilder(o);
         await host.RunConsoleAsync();

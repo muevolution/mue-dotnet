@@ -1,6 +1,6 @@
 namespace Mue.Server.Tools;
 
-public class ReloadScriptsTask : StandardTask
+public class ReloadScriptsTask : IStandardTask
 {
     private readonly ILogger<InitTask> _logger;
     private readonly IWorld _world;

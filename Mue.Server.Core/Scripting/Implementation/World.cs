@@ -164,7 +164,7 @@ public class MueScriptWorld
         var obj = await _world.GetObjectById(new ObjectId(objectId));
         if (obj == null || obj is not IContainer)
         {
-            return null;
+            return Enumerable.Empty<string>();
         }
 
         GameObjectType? dType = type != null ? GameObjectConsts.GetGameObjectType(type) : null;

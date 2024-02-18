@@ -10,9 +10,10 @@ public class ToolCliOptions
 
     public void AddCliOptions(IConfigurationBuilder config)
     {
-        var dict = new Dictionary<string, string?>();
-
-        dict.Add("ToolSettings:Task", this.Task);
+        var dict = new Dictionary<string, string?>
+        {
+            { "ToolSettings:Task", this.Task }
+        };
 
         config.AddInMemoryCollection(dict);
     }

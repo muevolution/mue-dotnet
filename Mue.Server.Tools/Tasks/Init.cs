@@ -3,7 +3,7 @@ using Mue.Server.Core.Objects;
 
 namespace Mue.Server.Tools;
 
-public class InitTask : StandardTask
+public class InitTask : IStandardTask
 {
     private readonly ILogger<InitTask> _logger;
     private readonly IWorld _world;

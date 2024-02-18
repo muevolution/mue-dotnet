@@ -1,6 +1,6 @@
 namespace Mue.Server.Tools;
 
-public interface StandardTask
+public interface IStandardTask
 {
     Task Start(CancellationToken cancellationToken);
 }
