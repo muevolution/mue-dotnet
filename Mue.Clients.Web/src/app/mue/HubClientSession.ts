@@ -5,9 +5,14 @@ export class HubClientSession {
     private _connection?: signalR.HubConnection;
     private _client?: HubClient;
 
-    constructor(private url: string, private callbacks: HubClientCallbacks) { }
+    constructor(
+        private url: string,
+        private callbacks: HubClientCallbacks,
+    ) {}
 
-    get client() { return this._client; }
+    get client() {
+        return this._client;
+    }
 
     get isAuthenticated() {
         return this._client?.isAuthenticated || false;

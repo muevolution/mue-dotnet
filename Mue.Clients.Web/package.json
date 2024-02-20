@@ -5,22 +5,29 @@
   "scripts": {
     "build": "parcel build src/index.html",
     "watch": "parcel watch src/index.html",
-    "serve": "parcel serve src/index.html --hmr-port 1235"
+    "serve": "parcel serve src/index.html --hmr-port 1235",
+    "lint": "eslint ."
   },
   "author": "Kauko <kauko@biosynth.link>",
   "license": "MIT",
+  "type": "module",
   "dependencies": {
-    "@microsoft/signalr": "^7.0.9",
-    "bootstrap": "^5.3.1",
+    "@microsoft/signalr": "^8.0.0",
+    "bootstrap": "^5.3.2",
     "events": "^3.3.0",
-    "preact": "^10.16.0",
-    "react-bootstrap": "^2.8.0"
+    "preact": "^10.19.5",
+    "reactstrap": "^9.2.2"
   },
   "devDependencies": {
-    "@parcel/transformer-sass": "^2.9.3",
-    "parcel": "^2.9.3",
+    "@parcel/transformer-sass": "^2.11.0",
+    "@types/react": "^18.2.56",
+    "@types/react-dom": "^18.2.19",
+    "eslint": "^8.56.0",
+    "parcel": "^2.11.0",
+    "prettier": "^3.2.5",
     "process": "^0.11.10",
-    "typescript": "^5.1.6"
+    "typescript": "^5.3.3",
+    "typescript-eslint": "^7.0.1"
   },
   "alias": {
     "preact/jsx-dev-runtime": "preact/jsx-runtime",

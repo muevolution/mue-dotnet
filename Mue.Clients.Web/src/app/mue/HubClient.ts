@@ -1,11 +1,20 @@
 import * as signalR from "@microsoft/signalr";
-import { AuthRequest, CommandRequest, CommunicationsMessage, MueCodes, OperationResponse } from "./consts";
+import {
+    AuthRequest,
+    CommandRequest,
+    CommunicationsMessage,
+    MueCodes,
+    OperationResponse,
+} from "./consts";
 
 export class HubClient {
     private _isAuthenticated: boolean = false;
     private _cachedAuth?: AuthRequest;
 
-    constructor(protected connection: signalR.HubConnection, callbacks: HubClientCallbacks) {
+    constructor(
+        protected connection: signalR.HubConnection,
+        callbacks: HubClientCallbacks,
+    ) {
         connection.on("Welcome", (motd: string) => {
             if (this._cachedAuth) {
                 this.auth(this._cachedAuth);
@@ -27,7 +36,10 @@ export class HubClient {
 
     // client to server
     auth = async (data: AuthRequest) => {
-        const res = await this.connection.invoke<OperationResponse>("Auth", data);
+        const res = await this.connection.invoke<OperationResponse>(
+            "Auth",
+            data,
+        );
 
         if (res.code === MueCodes.Success) {
             this._isAuthenticated = true;
@@ -38,8 +50,10 @@ export class HubClient {
 
         return res;
     };
-    command = (request: CommandRequest) => this.connection.invoke<OperationResponse>("Command", request);
-    echo = (message: string) => this.connection.invoke<OperationResponse>("Echo", message);
+    command = (request: CommandRequest) =>
+        this.connection.invoke<OperationResponse>("Command", request);
+    echo = (message: string) =>
+        this.connection.invoke<OperationResponse>("Echo", message);
     disconnect = () => this.connection.invoke<OperationResponse>("Disconnect");
 }
 

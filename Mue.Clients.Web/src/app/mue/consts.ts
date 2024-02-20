@@ -1,4 +1,9 @@
-export type HubEventTypes = "welcome" | "message" | "echo" | "disconnect" | "fatal";
+export type HubEventTypes =
+    | "welcome"
+    | "message"
+    | "echo"
+    | "disconnect"
+    | "fatal";
 
 export interface OperationResponse {
     success: boolean;
@@ -35,4 +40,4 @@ export enum MueCodes {
     LoginError = 100,
     UnauthenticatedError = 101,
     PubSubError = 201,
-};
+}
