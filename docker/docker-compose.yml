@@ -1,5 +1,6 @@
 services:
   server:
+    image: ghcr.io/muevolution/mue-dotnet/mue-server:latest
     build:
       context: ../
       dockerfile: docker/Dockerfile.unified
@@ -12,6 +13,7 @@ services:
       - "RedisConnectionString=redis:6379,allowAdmin=true"
 
   telnet:
+    image: ghcr.io/muevolution/mue-dotnet/mue-telnet:latest
     build:
       context: ../
       dockerfile: docker/Dockerfile.unified
@@ -22,6 +24,7 @@ services:
       - server
 
   web:
+    image: ghcr.io/muevolution/mue-dotnet/mue-web:latest
     build:
       context: ../
       dockerfile: docker/Dockerfile.unified
