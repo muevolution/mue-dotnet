@@ -1,0 +1,41 @@
+name: Docker
+
+on: [push]
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build Docker container (server)
+        uses: elgohr/Publish-Docker-Github-Action@v5
+        with:
+          name: ghcr.io/${{ github.repository }}/mue-server
+          registry: ghcr.io
+          username: ${{ github.repository }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          dockerfile: docker/Dockerfile.unified
+          platforms: linux/amd64,linux/arm64
+          buildoptions: "--target runtime-server"
+      - name: Build Docker container (telnet)
+        uses: elgohr/Publish-Docker-Github-Action@v5
+        with:
+          name: ghcr.io/${{ github.repository }}/mue-telnet
+          registry: ghcr.io
+          username: ${{ github.repository }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          dockerfile: docker/Dockerfile.unified
+          platforms: linux/amd64,linux/arm64
+          buildoptions: "--target runtime-telnet"
+      - name: Build Docker container (web)
+        uses: elgohr/Publish-Docker-Github-Action@v5
+        with:
+          name: ghcr.io/${{ github.repository }}/mue-web
+          registry: ghcr.io
+          username: ${{ github.repository }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          dockerfile: docker/Dockerfile.unified
+          platforms: linux/amd64,linux/arm64
+          buildoptions: "--target runtime-web"
