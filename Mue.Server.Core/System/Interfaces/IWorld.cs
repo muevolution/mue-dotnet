@@ -30,4 +30,5 @@ public interface IWorld
     ObjectUpdateObservable WorldEventStream { get; }
     Task FireObjectEvent<T>(ObjectId id, string eventName, T meta, bool localOnly = false) where T : IObjectUpdateResult;
     Task FirePlayerEvent<T>(ObjectId id, string eventName, T meta, bool localOnly = false) where T : IPlayerUpdateResult;
+    Task<string> GetMOTD();
 }

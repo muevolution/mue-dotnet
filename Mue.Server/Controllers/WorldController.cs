@@ -30,8 +30,8 @@ public class WorldController : ControllerBase
 
     [HttpGet]
     [Route("motd")]
-    public string Motd()
+    public async Task<string> Motd()
     {
-        return ServerConnector.MOTD;
+        return await _world.GetMOTD();
     }
 }

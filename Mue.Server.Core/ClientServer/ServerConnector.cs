@@ -1,32 +1,12 @@
 using System.Reactive.Linq;
 using System.Reactive;
 using Mue.Backend.PubSub;
-using System.Collections.ObjectModel;
+using System.Text;
 
 namespace Mue.Server.Core.ClientServer;
 
 public class ServerConnector : IClientToServer
 {
-    public const string MOTD = @"Welcome to mue (multi-user evolution)! This system is still under development.
-
-  █▀▄▀█   ▄   █      ▄▄▄▄▀ ▄█   ▄      ▄▄▄▄▄   ▄███▄   █▄▄▄▄
-  █ █ █    █  █   ▀▀▀ █    ██    █    █     ▀▄ █▀   ▀  █  ▄▀
-  █ ▄ █ █   █ █       █    ██ █   █ ▄  ▀▀▀▀▄   ██▄▄    █▀▀▌
-  █   █ █   █ ███▄   █     ▐█ █   █  ▀▄▄▄▄▀    █▄   ▄▀ █  █
-     █  █▄ ▄█     ▀ ▀       ▐ █▄ ▄█            ▀███▀     █
-    ▀    ▀▀▀                   ▀▀▀                      ▀
-  ▄███▄      ▄   ████▄ █       ▄     ▄▄▄▄▀ ▄█ ████▄    ▄
-  █▀   ▀      █  █   █ █        █ ▀▀▀ █    ██ █   █     █
-  ██▄▄   █     █ █   █ █     █   █    █    ██ █   █ ██   █
-  █▄   ▄▀ █    █ ▀████ ███▄  █   █   █     ▐█ ▀████ █ █  █
-  ▀███▀    █  █            ▀ █▄ ▄█  ▀       ▐       █  █ █
-            █▐                ▀▀▀                   █   ██
-            ▐
-
-          🚧 This is a development server. Help us develop! 🚧
-                       https://github.com/mue/mue-server
-";
-
     private readonly ILogger<ServerConnector> _logger;
     private readonly IWorld _world;
     private readonly IBackendPubSub _pubSub;
@@ -53,7 +33,8 @@ public class ServerConnector : IClientToServer
         _client = client;
         IsConnected = true;
 
-        await _client.SendWelcome(MOTD);
+        var motd = await _world.GetMOTD();
+        await _client.SendWelcome(motd);
     }
 
     public async Task<OperationResponse> OnAuthRequest(AuthRequest data)

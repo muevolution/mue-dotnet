@@ -321,6 +321,11 @@ public class World : IWorld
         }
     }
 
+    public Task<string> GetMOTD()
+    {
+        return MOTD.GetLiveMOTD(this);
+    }
+
     private void StateEnforce()
     {
         if (!_hasInit) throw new WorldNotInitException();
