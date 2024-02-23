@@ -7,6 +7,7 @@ import { CommunicationsMessage, MueCodes } from "../mue/consts";
 import { HubClientCallbacks } from "../mue/HubClient";
 import { DisplayMessage, MessageContents } from "../mue/Message";
 import { FunctionalComponent } from "preact";
+import { useServerConfig } from "../components/ServerConfig";
 
 const ChatPage: FunctionalComponent = () => {
     const [messageLog, setMessageLog] = useState<DisplayMessage[]>([]);
@@ -37,11 +38,28 @@ const ChatPage: FunctionalComponent = () => {
         },
     };
 
+    const { config: serverConfig, error: serverConfigError } =
+        useServerConfig();
+
     const { client, close, error, isAuthenticated } = useMueServerConnection(
-        "/mueclient",
+        serverConfig?.hubUrl,
         callbacks,
     );
 
+    if (serverConfigError) {
+        return (
+            <p>
+                Error!{" "}
+                <pre>
+                    {serverConfigError.message ||
+                        JSON.stringify(serverConfigError.message)}
+                </pre>
+            </p>
+        );
+    }
+    if (!serverConfig) {
+        return <p>Loading server configuration</p>;
+    }
     if (error) {
         return (
             <p>

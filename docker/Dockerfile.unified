@@ -1,0 +1,93 @@
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:7.0 AS dotnet-build
+ARG TARGETARCH
+ARG BUILDPLATFORM
+
+# Copy package stuff
+WORKDIR /app
+COPY Mue.Backend/*.csproj ./Mue.Backend/
+COPY Mue.Backend.Redis/*.csproj ./Mue.Backend.Redis/
+COPY Mue.Clients.Common/*.csproj ./Mue.Clients.Common/
+COPY Mue.Clients.Telnet/*.csproj ./Mue.Clients.Telnet/
+COPY Mue.Common/*.csproj ./Mue.Common/
+COPY Mue.Scripting/*.csproj ./Mue.Scripting/
+COPY Mue.Scripting.Python/*.csproj ./Mue.Scripting.Python/
+COPY Mue.Server/*.csproj ./Mue.Server/
+COPY Mue.Server.Core/*.csproj ./Mue.Server.Core/
+COPY Mue.Server.Tools/*.csproj ./Mue.Server.Tools/
+
+RUN dotnet restore -a $TARGETARCH Mue.Clients.Telnet
+RUN dotnet restore -a $TARGETARCH Mue.Server
+RUN dotnet restore -a $TARGETARCH Mue.Server.Tools
+
+# Copy everything else and build
+COPY Mue.Backend/ ./Mue.Backend/
+COPY Mue.Backend.Redis/ ./Mue.Backend.Redis/
+COPY Mue.Clients.Common/ ./Mue.Clients.Common/
+COPY Mue.Clients.Telnet/ ./Mue.Clients.Telnet/
+COPY Mue.Common/ ./Mue.Common/
+COPY Mue.Scripting/ ./Mue.Scripting/
+COPY Mue.Scripting.Python/ ./Mue.Scripting.Python/
+COPY Mue.Server/ ./Mue.Server/
+COPY Mue.Server.Core/ ./Mue.Server.Core/
+COPY Mue.Server.Tools/ ./Mue.Server.Tools/
+
+# Publish all final targets
+RUN dotnet publish Mue.Clients.Telnet -a $TARGETARCH --no-restore -o telnet.out
+RUN dotnet publish Mue.Server -a $TARGETARCH --no-restore -o server.out
+RUN dotnet publish Mue.Server.Tools -a $TARGETARCH --no-restore -o tools.out
+
+# Build runtime images
+#---
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS runtime-telnet
+
+WORKDIR /app
+COPY --from=dotnet-build /app/telnet.out .
+
+EXPOSE 8888
+ENTRYPOINT ["./Mue.Clients.Telnet"]
+
+#---
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS runtime-server
+
+WORKDIR /app
+COPY --from=dotnet-build /app/server.out Server/
+COPY --from=dotnet-build /app/tools.out Tools/
+COPY --from=dotnet-build /app/Mue.Server.Core/Scripting/Defaults/ ./ScriptDefaults/
+
+COPY docker/runtime-server/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENV ScriptDir="../ScriptDefaults/"
+
+EXPOSE 80
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["server"]
+
+#---
+
+# Build Web engine
+FROM --platform=$BUILDPLATFORM node:20.11-alpine AS node-build
+
+WORKDIR /app
+COPY Mue.Clients.Web/package.json .
+COPY Mue.Clients.Web/package-lock.json .
+
+RUN npm install --ci
+
+COPY Mue.Clients.Web/ .
+
+RUN npm run build
+
+# Build web runtime
+FROM nginx:1.25-alpine AS runtime-web
+
+COPY --from=node-build /app/dist /usr/share/nginx/html
+COPY docker/runtime-web/nginx-entrypoint.sh /docker-entrypoint.d/99-mue.sh
+COPY docker/runtime-web/nginx.conf /etc/nginx/conf.d/default.conf
+
+ENV USE_PROXY=false
+ENV FRONTEND_SERVER_URL=/mueclient
+ENV BACKEND_SERVER_URL=/mueclient
+COPY docker/runtime-web/template-variables.conf /etc/nginx/templates/99-mue.conf.template
+
+EXPOSE 80

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Mue Web Client",
   "scripts": {
-    "build": "parcel build src/index.html",
+    "build": "parcel build src/index.html --no-scope-hoist",
     "watch": "parcel watch src/index.html",
     "serve": "parcel serve src/index.html --hmr-port 1235",
     "lint": "eslint ."
@@ -15,6 +15,7 @@
     "@microsoft/signalr": "^8.0.0",
     "bootstrap": "^5.3.2",
     "events": "^3.3.0",
+    "parcel-reporter-static-files-copy": "^1.5.3",
     "preact": "^10.19.5",
     "reactstrap": "^9.2.2"
   },

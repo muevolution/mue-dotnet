@@ -1,12 +1,16 @@
+using Microsoft.Extensions.Configuration;
+
 namespace Mue.Server.Tools;
 
 public class ReloadScriptsTask : IStandardTask
 {
+    private readonly IConfiguration _config;
     private readonly ILogger<InitTask> _logger;
     private readonly IWorld _world;
 
-    public ReloadScriptsTask(ILogger<InitTask> logger, IWorld world)
+    public ReloadScriptsTask(IConfiguration config, ILogger<InitTask> logger, IWorld world)
     {
+        _config = config;
         _logger = logger;
         _world = world;
     }
@@ -26,7 +30,7 @@ public class ReloadScriptsTask : IStandardTask
         }
 
         // Load scripts
-        var scriptLoader = new ScriptLoader(_world);
+        var scriptLoader = new ScriptLoader(_config, _world);
         await scriptLoader.UpdateScripts(player1.Id, room0.Id, room0.Id);
 
         _logger.LogInformation("Code reload complete.");

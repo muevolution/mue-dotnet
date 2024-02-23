@@ -23,7 +23,7 @@ public static class MueStartupExtensions
 
     public static IServiceCollection ConfigureMueServices(this IServiceCollection services)
     {
-        services.AddRedisBackendServices((s) => s.GetRequiredService<IConfiguration>()["RedisConnectionString"]);
+        services.AddRedisBackendServices((s) => s.GetRequiredService<IConfiguration>()["RedisConnectionString"] ?? throw new Exception("Failed to read RedisConnectionString"));
         services.AddMueCoreServices();
         services.AddHostedService<HostedWorld>();
 

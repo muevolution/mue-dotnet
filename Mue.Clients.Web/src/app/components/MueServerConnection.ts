@@ -3,15 +3,23 @@ import { HubClientCallbacks } from "../mue/HubClient";
 import { HubClientSession } from "../mue/HubClientSession";
 
 export function useMueServerConnection(
-    url: string,
+    url: string | undefined,
     callbacks: HubClientCallbacks,
 ) {
     const [error, setError] = useState<Error>();
-    const [session] = useState<HubClientSession>(
-        () => new HubClientSession(url, callbacks),
-    );
+    const [session, setSession] = useState<HubClientSession>();
 
     useEffect(() => {
+        if (url) {
+            setSession(() => new HubClientSession(url, callbacks));
+        }
+    }, [url]);
+
+    useEffect(() => {
+        if (!session) {
+            return;
+        }
+
         session
             .open()
             .then(() => {
@@ -29,9 +37,9 @@ export function useMueServerConnection(
     }, [session]);
 
     return {
-        client: session.client,
-        close: () => session.close(),
-        isAuthenticated: session.isAuthenticated,
+        client: session?.client,
+        close: () => session?.close(),
+        isAuthenticated: !!session?.isAuthenticated,
         error,
     };
 }

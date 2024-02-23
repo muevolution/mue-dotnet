@@ -1,0 +1,45 @@
+services:
+  server:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.unified
+      target: runtime-server
+    ports:
+      - "5000:80"
+    depends_on:
+      - redis
+    environment:
+      - "RedisConnectionString=redis:6379,allowAdmin=true"
+
+  telnet:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.unified
+      target: runtime-telnet
+    ports:
+      - "8888:8888"
+    depends_on:
+      - server
+
+  web:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.unified
+      target: runtime-web
+    ports:
+      - "5001:80"
+    depends_on:
+      - server
+    environment:
+      - "USE_PROXY=true"
+      - "BACKEND_SERVER_URL=http://server"
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  redis-data:

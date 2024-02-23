@@ -4,7 +4,6 @@ using Mue.Server.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true);
 builder.Services.ConfigureMueServices();
 
 // Add services to the container.

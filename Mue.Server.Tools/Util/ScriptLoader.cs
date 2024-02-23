@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Configuration;
 using Mue.Server.Core.Models;
 using Mue.Server.Core.Objects;
 
@@ -7,16 +8,17 @@ namespace Mue.Server.Tools;
 public class ScriptLoader
 {
     private readonly IWorld _world;
-    private const string SCRIPT_DIR = @"../Mue.Server.Core/Scripting/Defaults";
+    private readonly string _scriptDir;
 
-    public ScriptLoader(IWorld world)
+    public ScriptLoader(IConfiguration config, IWorld world)
     {
         _world = world;
+        _scriptDir = config["ScriptDir"] ?? @"../Mue.Server.Core/Scripting/Defaults";
     }
 
     private IEnumerable<string> GetScripts()
     {
-        return Directory.GetFiles(SCRIPT_DIR, "*.py").Select(s => Path.GetFileName(s));
+        return Directory.GetFiles(_scriptDir, "*.py").Select(s => Path.GetFileName(s));
     }
 
     private async Task UpdateScript(string filename, ObjectId creator, ObjectId location, ObjectId? actionDestination = null)
@@ -31,7 +33,7 @@ public class ScriptLoader
             scriptCreated = true;
         }
 
-        var fileContents = await File.ReadAllLinesAsync($"{SCRIPT_DIR}/{filename}");
+        var fileContents = await File.ReadAllLinesAsync($"{_scriptDir}/{filename}");
         await _world.StorageManager.SetScriptCode(script.Id, String.Join('\n', fileContents));
 
         // TODO: Search and update somehow instead
@@ -54,6 +56,9 @@ public class ScriptLoader
     public async Task UpdateScripts(ObjectId creator, ObjectId location, ObjectId? actionDestination = null)
     {
         var scripts = GetScripts();
+        if (scripts.Count() < 1) {
+            throw new Exception("No scripts found in script directory");
+        }
 
         foreach (var script in scripts)
         {

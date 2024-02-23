@@ -10,9 +10,9 @@ static IHostBuilder CreateHostBuilder(ToolCliOptions opts) =>
         .ConfigureHostConfiguration(opts.AddCliOptions)
         .ConfigureAppConfiguration(builder =>
         {
-            // TODO: Figure out how to load the standard config file for the server
-            builder.AddJsonFile("appsettings.json");
-            builder.AddJsonFile("appsettings.Local.json", optional: true);
+            builder.AddJsonFile("appsettings.json", optional: true);
+            builder.AddJsonFile("appsettings.Development.json", optional: true);
+            builder.AddEnvironmentVariables();
         })
         .ConfigureMueStartup()
         .ConfigureServices(services =>

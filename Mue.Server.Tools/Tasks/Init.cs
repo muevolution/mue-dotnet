@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Mue.Backend;
 using Mue.Server.Core.Objects;
 
@@ -5,12 +6,14 @@ namespace Mue.Server.Tools;
 
 public class InitTask : IStandardTask
 {
+    private readonly IConfiguration _config;
     private readonly ILogger<InitTask> _logger;
     private readonly IWorld _world;
     private readonly RedisBackend _backend;
 
-    public InitTask(ILogger<InitTask> logger, IWorld world, RedisBackend backend)
+    public InitTask(IConfiguration config, ILogger<InitTask> logger, IWorld world, RedisBackend backend)
     {
+        _config = config;
         _logger = logger;
         _world = world;
         _backend = backend;
@@ -52,7 +55,7 @@ public class InitTask : IStandardTask
         _logger.LogDebug("Player 2 is: " + player2);
 
         // Load scripts
-        var scriptLoader = new ScriptLoader(_world);
+        var scriptLoader = new ScriptLoader(_config, _world);
         await scriptLoader.UpdateScripts(player1.Id, room0.Id, room0.Id);
 
         _logger.LogInformation("Server init complete.");
